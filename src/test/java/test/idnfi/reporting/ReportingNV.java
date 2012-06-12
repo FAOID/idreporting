@@ -77,6 +77,7 @@ public class ReportingNV {
 		List<CollectRecord> records = recordManager.loadSummaries(survey, "cluster", 0, Integer.MAX_VALUE, (List<RecordSummarySortField>) null, (String) null);
 		
 		// mencari berapa cluster yg sudah diinputkan pada masing2 tahun
+		// V = (0.25 * 3.14 * d^2 * bole_height * 0.56) / 10.000
 		
 		HashMap<Integer, ProvinceN> hashProvince = new HashMap<Integer, ProvinceN>();
 		int i=0;
@@ -115,6 +116,7 @@ public class ReportingNV {
 		hashProvince.put(32, new ProvinceN(32,"Maluku Utara"));
 		hashProvince.put(33, new ProvinceN(33,"Irian Barat"));
 		
+		ModelPathExpression relativeExpression;
 		for (CollectRecord s : records) {
 			ExpressionFactory expressionFactory = s.getSurveyContext().getExpressionFactory();
 			AbsoluteModelPathExpression expression = expressionFactory.createAbsoluteModelPathExpression(rootEntityName);
@@ -127,36 +129,63 @@ public class ReportingNV {
 				{	
 					String strD = extractValues(n, "dbb_or_b").get(0);
 					double d;
-					int provinceCode;;
+					int provinceCode;
+					
+					
 					if(!"".equals(strD))
-					{
-						expressionFactory = s.getSurveyContext().getExpressionFactory();
-						ModelPathExpression relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
+					{	
+						relativeExpression = expressionFactory.createModelPathExpression("trees_higher_than_20cm/bole_height");
+						RealAttribute bole_heightAttr = (RealAttribute) relativeExpression.evaluate(n, null);						
+						double bole_height = 0;
+						if(bole_heightAttr!=null)
+						{
+							RealValue x = bole_heightAttr.getValue();
+							if(x!=null) {
+								try {
+									bole_height = x.getValue();
+								}catch(NullPointerException ex)
+								{	
+								}
+							}
+							
+						}
+						
+						
+						
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
 						CodeAttribute code = (CodeAttribute ) relativeExpression.evaluate(n, null);
 						provinceCode = Integer.parseInt(code.getValue().getCode());
+						
 						
 						d = Double.parseDouble(strD);
 						if(d>=20){
 							i++;
 							hashProvince.get(provinceCode).getUp20().add(d);
+							hashProvince.get(provinceCode).addToV("20", d, bole_height);
 						}
 						if(d>=30){
 							hashProvince.get(provinceCode).getUp30().add(d);
+							hashProvince.get(provinceCode).addToV("30", d, bole_height);
 						}
 						if(d>=40){
 							hashProvince.get(provinceCode).getUp40().add(d);
+							hashProvince.get(provinceCode).addToV("40", d, bole_height);
 						}
 						if(d>=50){
 							hashProvince.get(provinceCode).getUp50().add(d);
+							hashProvince.get(provinceCode).addToV("50", d, bole_height);
 						}
 						if(d>=60){
 							hashProvince.get(provinceCode).getUp60().add(d);
+							hashProvince.get(provinceCode).addToV("60", d, bole_height);
 						}
 						if(d>=70){
 							hashProvince.get(provinceCode).getUp70().add(d);
+							hashProvince.get(provinceCode).addToV("70", d, bole_height);
 						}
 						if(d>=80){
 							hashProvince.get(provinceCode).getUp80().add(d);
+							hashProvince.get(provinceCode).addToV("80", d, bole_height);
 						}
 					}
 				}				
@@ -167,17 +196,23 @@ public class ReportingNV {
 			}			
 		}
 		
+		System.out.println("Provinsi;N20;V20;N30;V30;N40;V40;N50;V50;N60;V60;N70;V70;N80;V80");
 		for(int p : hashProvince.keySet())
 		{
 			ProvinceN prov = hashProvince.get(p);
-			System.out.println(prov.getTitle());
-			System.out.println("\tUP 20 " + prov.getUp20().size());
-			System.out.println("\tUP 30 " + prov.getUp30().size());
-			System.out.println("\tUP 40 " + prov.getUp40().size());
-			System.out.println("\tUP 50 " + prov.getUp50().size());
-			System.out.println("\tUP 60 " + prov.getUp60().size());
-			System.out.println("\tUP 70 " + prov.getUp70().size());
-			System.out.println("\tUP 80 " + prov.getUp80().size());
+			if(prov.getUp20().size()>0)
+			{
+				
+				System.out.println(prov.getTitle() + 
+						";" + prov.getUp20().size() + ";" +  prov.getV20().get(0) +
+						";" + prov.getUp30().size()+ ";" + prov.getV30().get(0) +
+						";" + prov.getUp40().size()+ ";" + prov.getV40().get(0) +
+						";" + prov.getUp50().size()+ ";" + prov.getV50().get(0) +
+						";" + prov.getUp60().size()+ ";" + prov.getV60().get(0) +
+						";" + prov.getUp70().size()+ ";" + prov.getV70().get(0) +
+						";" + prov.getUp80().size()+ ";" + prov.getV80().get(0) 
+						);
+			}
 		}
 	}
 	
