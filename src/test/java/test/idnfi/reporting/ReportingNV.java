@@ -2,7 +2,9 @@ package test.idnfi.reporting;
 
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Test;
@@ -23,6 +25,7 @@ import org.openforis.idm.model.CodeAttribute;
 import org.openforis.idm.model.Entity;
 import org.openforis.idm.model.Field;
 import org.openforis.idm.model.Node;
+import org.openforis.idm.model.RealAttribute;
 import org.openforis.idm.model.RealValue;
 import org.openforis.idm.model.Record;
 import org.openforis.idm.model.expression.AbsoluteModelPathExpression;
@@ -59,7 +62,7 @@ public class ReportingNV {
 	@Test
 	public void testReportingNV() throws InvalidExpressionException, RecordPersistenceException
 	{
-		CollectSurvey survey = surveyDao.load("idnfi");
+		/*CollectSurvey survey = surveyDao.load("idnfi");
 		Schema schema = survey.getSchema();
 		String rootEntityName = "/cluster/permanent_plot_a/plota_enum";
 		EntityDefinition defn = (EntityDefinition) schema.getByPath(rootEntityName);
@@ -67,42 +70,115 @@ public class ReportingNV {
 		CollectRecord records = recordDao.load(survey, survey.getId(), 1);
 		
 		List<Node<?>> nodes = iterateExpression(rootEntityName,records );
-		System.out.println(nodes.size());
+		System.out.println(nodes.size());*/
 		
+		String rootEntityName = "/cluster/permanent_plot_a/plota_enum";
+		CollectSurvey survey = surveyDao.load("idnfi");
+		List<CollectRecord> records = recordManager.loadSummaries(survey, "cluster", 0, Integer.MAX_VALUE, (List<RecordSummarySortField>) null, (String) null);
 		
+		// mencari berapa cluster yg sudah diinputkan pada masing2 tahun
 		
-		List<CollectRecord> summaries = recordManager.loadSummaries(survey, "cluster", 0, Integer.MAX_VALUE, (List<RecordSummarySortField>) null, (String) null);
-		for (CollectRecord s : summaries) {
+		HashMap<Integer, ProvinceN> hashProvince = new HashMap<Integer, ProvinceN>();
+		int i=0;
+		System.out.println("collectRecord size = " + records.size());
+		hashProvince.put(1, new ProvinceN(1,"Daerah Istimewa Aceh"));
+		hashProvince.put(2, new ProvinceN(2,"Sumatera Utara"));
+		hashProvince.put(3, new ProvinceN(3,"Sumatera Barat"));
+		hashProvince.put(4, new ProvinceN(4,"Riau"));
+		hashProvince.put(5, new ProvinceN(5,"Jambi"));
+		hashProvince.put(6, new ProvinceN(6,"Sumatera Selatan"));
+		hashProvince.put(7, new ProvinceN(7,"Lampung"));
+		hashProvince.put(8, new ProvinceN(8,"Bengkulu"));
+		hashProvince.put(9, new ProvinceN(9,"Banten"));
+		hashProvince.put(10, new ProvinceN(10,"Jawa Barat"));
+		hashProvince.put(11, new ProvinceN(11,"Jawa Tengah"));
+		hashProvince.put(12, new ProvinceN(12,"DIY"));
+		hashProvince.put(13, new ProvinceN(13,"Jawa Timur"));
+		hashProvince.put(14, new ProvinceN(14,"Bali"));
+		hashProvince.put(15, new ProvinceN(15,"Nusa Tenggara Barat"));
+		hashProvince.put(16, new ProvinceN(16,"Nusa Tenggara Timur"));
+		hashProvince.put(17, new ProvinceN(17,"Timor Timur"));
+		hashProvince.put(18, new ProvinceN(18,"Kalimantan Barat"));
+		hashProvince.put(19, new ProvinceN(19,"Kalimantan Tengah"));
+		hashProvince.put(20, new ProvinceN(20,"Kalimantan Selatan"));
+		hashProvince.put(21, new ProvinceN(21,"Kalimantan Timur"));
+		hashProvince.put(22, new ProvinceN(22,"Sulawesi Utara"));
+		hashProvince.put(23, new ProvinceN(23,"Sulawesi Tengah"));
+		hashProvince.put(24, new ProvinceN(24,"Sulawesi Tenggara"));
+		hashProvince.put(25, new ProvinceN(25,"Sulawesi Selatan"));
+		hashProvince.put(26, new ProvinceN(26,"Maluku"));
+		hashProvince.put(27, new ProvinceN(27,"Irian Jaya"));
+		hashProvince.put(28, new ProvinceN(28,"Kepulauan Riau"));
+		hashProvince.put(29, new ProvinceN(29,"Bangka Belitung"));
+		hashProvince.put(30, new ProvinceN(30,"Gorontalo"));
+		hashProvince.put(31, new ProvinceN(31,"Sulawesi Barat"));
+		hashProvince.put(32, new ProvinceN(32,"Maluku Utara"));
+		hashProvince.put(33, new ProvinceN(33,"Irian Barat"));
+		
+		for (CollectRecord s : records) {
 			ExpressionFactory expressionFactory = s.getSurveyContext().getExpressionFactory();
 			AbsoluteModelPathExpression expression = expressionFactory.createAbsoluteModelPathExpression(rootEntityName);
 			CollectRecord record = recordManager.load(survey, s.getId(), 1);
+			
 			try 
 			{
 				List<Node<?>> rowNodes = expression.iterate(record);
-				for(Node<? extends NodeDefinition> n :rowNodes)
+				for(Node<?> n :rowNodes)
 				{	
 					String strD = extractValues(n, "dbb_or_b").get(0);
 					double d;
+					int provinceCode;;
 					if(!"".equals(strD))
 					{
+						expressionFactory = s.getSurveyContext().getExpressionFactory();
+						ModelPathExpression relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
+						CodeAttribute code = (CodeAttribute ) relativeExpression.evaluate(n, null);
+						provinceCode = Integer.parseInt(code.getValue().getCode());
+						
 						d = Double.parseDouble(strD);
-						System.out.println(n.getName() + " = " + d);
+						if(d>=20){
+							i++;
+							hashProvince.get(provinceCode).getUp20().add(d);
+						}
+						if(d>=30){
+							hashProvince.get(provinceCode).getUp30().add(d);
+						}
+						if(d>=40){
+							hashProvince.get(provinceCode).getUp40().add(d);
+						}
+						if(d>=50){
+							hashProvince.get(provinceCode).getUp50().add(d);
+						}
+						if(d>=60){
+							hashProvince.get(provinceCode).getUp60().add(d);
+						}
+						if(d>=70){
+							hashProvince.get(provinceCode).getUp70().add(d);
+						}
+						if(d>=80){
+							hashProvince.get(provinceCode).getUp80().add(d);
+						}
 					}
-				}
+				}				
 			}
 			catch(MissingValueException ex)
 			{
 				ex.printStackTrace();
-			}
-			
+			}			
 		}
-	}
-	
-	private List<Node<?>> iterateExpression(String expr, Record record) throws InvalidExpressionException {
-		ExpressionFactory expressionFactory = record.getSurveyContext().getExpressionFactory();
-		AbsoluteModelPathExpression expression = expressionFactory.createAbsoluteModelPathExpression(expr);
-		List<Node<?>> l = expression.iterate(record);
-		return l;
+		
+		for(int p : hashProvince.keySet())
+		{
+			ProvinceN prov = hashProvince.get(p);
+			System.out.println(prov.getTitle());
+			System.out.println("\tUP 20 " + prov.getUp20().size());
+			System.out.println("\tUP 30 " + prov.getUp30().size());
+			System.out.println("\tUP 40 " + prov.getUp40().size());
+			System.out.println("\tUP 50 " + prov.getUp50().size());
+			System.out.println("\tUP 60 " + prov.getUp60().size());
+			System.out.println("\tUP 70 " + prov.getUp70().size());
+			System.out.println("\tUP 80 " + prov.getUp80().size());
+		}
 	}
 	
 	public List<String> extractValues(Node<?> axis,String attributeName) {
