@@ -2,6 +2,7 @@ package test.idnfi.reporting;
 
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -135,10 +136,31 @@ public class ReportingNV {
 					
 					if(!"".equals(strD))
 					{	
+						//utm zone
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/utm_zone");
+						IntegerAttribute utmZoneAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer utmZone = utmZoneAttr.getValue().getValue();
+						
+						
+						//easting
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/easting");
+						IntegerAttribute eastingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer easting = eastingAttr.getValue().getValue();
+						
+						
+						//northing
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/northing");
+						IntegerAttribute northingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer northing = northingAttr.getValue().getValue();
+						
+						
+						String clusterKey = utmZone + "" + northing + "" + easting + "";
+						
 						//year
 						relativeExpression = expressionFactory.createModelPathExpression("parent()/year");
 						IntegerAttribute yearAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
 						Integer year = yearAttr.getValue().getValue();
+						
 						
 						//bole_height
 						relativeExpression = expressionFactory.createModelPathExpression("trees_higher_than_20cm/bole_height");
@@ -154,47 +176,45 @@ public class ReportingNV {
 								{	
 								}
 							}
-							
 						}
-						
-						
 						
 						relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
 						CodeAttribute code = (CodeAttribute ) relativeExpression.evaluate(n, null);
 						provinceCode = Integer.parseInt(code.getValue().getCode());
-						
-						
-						d = Double.parseDouble(strD);
-						if(d>=20){
-							i++;
-							hashProvince.get(provinceCode).getN("20", year).add(d);
-							hashProvince.get(provinceCode).addV("20", year, d, bole_height);
+						//if(26==provinceCode)
+						//{
+							d = Double.parseDouble(strD);
+							if(d>=20){
+								i++;
+								hashProvince.get(provinceCode).getN(clusterKey, year, "20").add(d);
+								hashProvince.get(provinceCode).addV(clusterKey, year, "20", d, bole_height);
+							}
+							if(d>=30){
+								hashProvince.get(provinceCode).getN(clusterKey, year, "30").add(d);
+								hashProvince.get(provinceCode).addV(clusterKey, year, "30", d, bole_height);
+							}
+							if(d>=40){
+								hashProvince.get(provinceCode).getN(clusterKey, year, "40").add(d);
+								hashProvince.get(provinceCode).addV(clusterKey, year, "40", d, bole_height);
+							}
+							if(d>=50){
+								hashProvince.get(provinceCode).getN(clusterKey, year, "50").add(d);
+								hashProvince.get(provinceCode).addV(clusterKey, year, "50", d, bole_height);
+							}
+							if(d>=60){
+								hashProvince.get(provinceCode).getN(clusterKey, year, "60").add(d);
+								hashProvince.get(provinceCode).addV(clusterKey, year, "60", d, bole_height);
+							}
+							if(d>=70){
+								hashProvince.get(provinceCode).getN(clusterKey, year, "70").add(d);
+								hashProvince.get(provinceCode).addV(clusterKey, year, "70", d, bole_height);
+							}
+							if(d>=80){
+								hashProvince.get(provinceCode).getN(clusterKey, year, "80").add(d);
+								hashProvince.get(provinceCode).addV(clusterKey, year, "80", d, bole_height);
+							}
 						}
-						if(d>=30){
-							hashProvince.get(provinceCode).getN("30", year).add(d);
-							hashProvince.get(provinceCode).addV("30", year, d, bole_height);
-						}
-						if(d>=40){
-							hashProvince.get(provinceCode).getN("40", year).add(d);
-							hashProvince.get(provinceCode).addV("40", year, d, bole_height);
-						}
-						if(d>=50){
-							hashProvince.get(provinceCode).getN("50", year).add(d);
-							hashProvince.get(provinceCode).addV("50", year, d, bole_height);
-						}
-						if(d>=60){
-							hashProvince.get(provinceCode).getN("60", year).add(d);
-							hashProvince.get(provinceCode).addV("60", year, d, bole_height);
-						}
-						if(d>=70){
-							hashProvince.get(provinceCode).getN("70", year).add(d);
-							hashProvince.get(provinceCode).addV("70", year, d, bole_height);
-						}
-						if(d>=80){
-							hashProvince.get(provinceCode).getN("80", year).add(d);
-							hashProvince.get(provinceCode).addV("80", year, d, bole_height);
-						}
-					}
+					//}
 				}				
 			}
 			catch(MissingValueException ex)
@@ -203,29 +223,42 @@ public class ReportingNV {
 			}			
 		}
 		
-		System.out.println("Provinsi;Tahun;N20;V20;N30;V30;N40;V40;N50;V50;N60;V60;N70;V70;N80;V80");
+		System.out.println("i =" + i);
+		System.out.println("Provinsi;Cluster;Tahun;N20;V20;N30;V30;N40;V40;N50;V50;N60;V60;N70;V70;N80;V80");
 		for(int p : hashProvince.keySet())
 		{
 			ProvinceN prov = hashProvince.get(p);
-			if(prov.getHashN20().size()>0)
+			if(prov.getHashClusterN().keySet().size()>0) 
 			{
-				System.out.println(prov.getTitle());
-				for(Integer year : prov.getHashN20().keySet())
-				{
-					System.out.println(";" + year + ";" + 
-						prov.getHashN("20", year).size() + ";" + (prov.getHashV("20", year).size()==0?"0": prov.getHashV("20", year).get(0)) + ";" +
-						prov.getHashN("30", year).size() + ";" + (prov.getHashV("30", year).size()==0?"0": prov.getHashV("30", year).get(0)) + ";" +
-						prov.getHashN("40", year).size() + ";" + (prov.getHashV("40", year).size()==0?"0": prov.getHashV("40", year).get(0)) + ";" +
-						prov.getHashN("50", year).size() + ";" + (prov.getHashV("50", year).size()==0?"0": prov.getHashV("50", year).get(0)) + ";" +
-						prov.getHashN("60", year).size() + ";" + (prov.getHashV("60", year).size()==0?"0": prov.getHashV("60", year).get(0)) + ";" +
-						prov.getHashN("70", year).size() + ";" + (prov.getHashV("70", year).size()==0?"0": prov.getHashV("70", year).get(0)) + ";" +
-						prov.getHashN("80", year).size() + ";" + (prov.getHashV("80", year).size()==0?"0": prov.getHashV("80", year).get(0))
-					);
-
+				System.out.print(prov.getTitle());
+			}
+			
+			for(String clusterKey : prov.getHashClusterN().keySet())//province
+			{				
+				if(prov.getHashClusterN().get(clusterKey).size()>0)//cluster
+				{					
+					for(Integer year : prov.getHashClusterN().get(clusterKey).get(20).keySet())
+					{
+						System.out.println(";" + clusterKey + ";" + year + ";" + 
+							prov.getHashN(clusterKey, year, "20").size() + ";" + (prov.getHashV(clusterKey, year, "20").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "20").get(0))) + ";" +
+							prov.getHashN(clusterKey, year, "30").size() + ";" + (prov.getHashV(clusterKey, year, "30").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "30").get(0))) + ";" +
+							prov.getHashN(clusterKey, year, "40").size() + ";" + (prov.getHashV(clusterKey, year, "40").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "40").get(0))) + ";" +
+							prov.getHashN(clusterKey, year, "50").size() + ";" + (prov.getHashV(clusterKey, year, "50").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "50").get(0))) + ";" +
+							prov.getHashN(clusterKey, year, "60").size() + ";" + (prov.getHashV(clusterKey, year, "60").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "60").get(0))) + ";" +
+							prov.getHashN(clusterKey, year, "70").size() + ";" + (prov.getHashV(clusterKey, year, "70").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "70").get(0))) + ";" +
+							prov.getHashN(clusterKey, year, "80").size() + ";" + (prov.getHashV(clusterKey, year, "80").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "80").get(0)))
+						);
+					}
 				}
 			}
 		}
 	}
+	
+	public String formatTwoDigits(double d) {  
+		DecimalFormat fmt = new DecimalFormat("0.00");  
+		String string = fmt.format(d);  
+		return string;  
+	}  
 	
 	public List<String> extractValues(Node<?> axis,String attributeName) {
 		if ( axis == null ) {
