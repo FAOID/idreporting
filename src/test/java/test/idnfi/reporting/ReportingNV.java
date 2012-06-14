@@ -154,7 +154,7 @@ public class ReportingNV {
 						Integer northing = northingAttr.getValue().getValue();
 						
 						
-						String clusterKey = utmZone + "" + northing + "" + easting + "";
+						String clusterKey = utmZone + "" + easting + "" + String.format("%04d", northing)  + "";
 						
 						//year
 						relativeExpression = expressionFactory.createModelPathExpression("parent()/year");
