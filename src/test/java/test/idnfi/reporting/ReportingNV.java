@@ -83,7 +83,7 @@ public class ReportingNV {
 		
 		HashMap<Integer, ProvinceN> hashProvince = new HashMap<Integer, ProvinceN>();
 		int i=0;
-		System.out.println("collectRecord size = " + records.size());
+		//System.out.println("collectRecord size = " + records.size());
 		hashProvince.put(1, new ProvinceN(1,"Daerah Istimewa Aceh"));
 		hashProvince.put(2, new ProvinceN(2,"Sumatera Utara"));
 		hashProvince.put(3, new ProvinceN(3,"Sumatera Barat"));
@@ -123,104 +123,112 @@ public class ReportingNV {
 			ExpressionFactory expressionFactory = s.getSurveyContext().getExpressionFactory();
 			AbsoluteModelPathExpression expression = expressionFactory.createAbsoluteModelPathExpression(rootEntityName);
 			CollectRecord record = recordManager.load(survey, s.getId(), 1);
-			
-			try 
-			{
-				List<Node<?>> rowNodes = expression.iterate(record);
-				for(Node<?> n :rowNodes)
-				{	
-					String strD = extractValues(n, "dbb_or_b").get(0);
-					double d;
-					int provinceCode;
-					
-					
-					if(!"".equals(strD))
-					{	
-						//utm zone
-						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/utm_zone");
-						IntegerAttribute utmZoneAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-						Integer utmZone = utmZoneAttr.getValue().getValue();
-						
-						
-						//easting
-						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/easting");
-						IntegerAttribute eastingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-						Integer easting = eastingAttr.getValue().getValue();
-						
-						
-						//northing
-						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/northing");
-						IntegerAttribute northingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-						Integer northing = northingAttr.getValue().getValue();
-						
-						
-						String clusterKey = utmZone + "" + easting + "" + String.format("%04d", northing)  + "";
-						
-						//year
-						relativeExpression = expressionFactory.createModelPathExpression("parent()/year");
-						IntegerAttribute yearAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-						Integer year = yearAttr.getValue().getValue();
-						
-						
-						//bole_height
-						relativeExpression = expressionFactory.createModelPathExpression("trees_higher_than_20cm/bole_height");
-						RealAttribute bole_heightAttr = (RealAttribute) relativeExpression.evaluate(n, null);						
-						double bole_height = 0;
-						if(bole_heightAttr!=null)
-						{
-							RealValue x = bole_heightAttr.getValue();
-							if(x!=null) {
-								try {
-									bole_height = x.getValue();
-								}catch(NullPointerException ex)
-								{	
-								}
-							}
-						}
-						
-						relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
-						CodeAttribute code = (CodeAttribute ) relativeExpression.evaluate(n, null);
-						provinceCode = Integer.parseInt(code.getValue().getCode());
-						//if(26==provinceCode)
-						//{
-							d = Double.parseDouble(strD);
-							if(d>=20){
-								i++;
-								hashProvince.get(provinceCode).getN(clusterKey, year, "20").add(d);
-								hashProvince.get(provinceCode).addV(clusterKey, year, "20", d, bole_height);
-							}
-							if(d>=30){
-								hashProvince.get(provinceCode).getN(clusterKey, year, "30").add(d);
-								hashProvince.get(provinceCode).addV(clusterKey, year, "30", d, bole_height);
-							}
-							if(d>=40){
-								hashProvince.get(provinceCode).getN(clusterKey, year, "40").add(d);
-								hashProvince.get(provinceCode).addV(clusterKey, year, "40", d, bole_height);
-							}
-							if(d>=50){
-								hashProvince.get(provinceCode).getN(clusterKey, year, "50").add(d);
-								hashProvince.get(provinceCode).addV(clusterKey, year, "50", d, bole_height);
-							}
-							if(d>=60){
-								hashProvince.get(provinceCode).getN(clusterKey, year, "60").add(d);
-								hashProvince.get(provinceCode).addV(clusterKey, year, "60", d, bole_height);
-							}
-							if(d>=70){
-								hashProvince.get(provinceCode).getN(clusterKey, year, "70").add(d);
-								hashProvince.get(provinceCode).addV(clusterKey, year, "70", d, bole_height);
-							}
-							if(d>=80){
-								hashProvince.get(provinceCode).getN(clusterKey, year, "80").add(d);
-								hashProvince.get(provinceCode).addV(clusterKey, year, "80", d, bole_height);
-							}
-						}
-					//}
-				}				
+			List<Node<?>> rowNodes = null;
+			try {
+				rowNodes = expression.iterate(record);
+			}catch(MissingValueException ex)
+			{				
 			}
-			catch(MissingValueException ex)
-			{
-				ex.printStackTrace();
-			}			
+			
+			if(rowNodes == null) continue;
+			
+			for(Node<?> n :rowNodes)
+			{	
+				String strD = extractValues(n, "dbb_or_b").get(0);
+				double d;
+				int provinceCode;
+				
+				
+				if(!"".equals(strD))
+				{	
+					//utm zone
+					relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/utm_zone");
+					IntegerAttribute utmZoneAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+					Integer utmZone = utmZoneAttr.getValue().getValue();
+					
+					
+					//easting
+					relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/easting");
+					IntegerAttribute eastingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+					Integer easting = eastingAttr.getValue().getValue();
+					
+					
+					//northing
+					relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/northing");
+					IntegerAttribute northingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+					Integer northing = northingAttr.getValue().getValue();
+					
+					
+					String clusterKey = utmZone + "" + easting + "" + String.format("%04d", northing)  + "";
+					//System.out.println(utmZone + ":" + easting + ":" + String.format("%04d", northing)  + "");
+					
+					//year
+					relativeExpression = expressionFactory.createModelPathExpression("parent()/year");
+					IntegerAttribute yearAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+					Integer year = yearAttr.getValue().getValue();
+					
+					
+					//bole_height
+					relativeExpression = expressionFactory.createModelPathExpression("trees_higher_than_20cm/bole_height");
+					RealAttribute bole_heightAttr=null;
+					try {
+						bole_heightAttr = (RealAttribute) relativeExpression.evaluate(n, null);
+					}catch(MissingValueException ex)
+					{
+						
+					}
+					double bole_height = 0;
+					if(bole_heightAttr!=null)
+					{
+						RealValue x = bole_heightAttr.getValue();
+						if(x!=null) {
+							try {
+								bole_height = x.getValue();
+							}catch(NullPointerException ex)
+							{	
+							}
+						}
+					}
+					
+					relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
+					CodeAttribute code = (CodeAttribute ) relativeExpression.evaluate(n, null);
+					provinceCode = Integer.parseInt(code.getValue().getCode());
+					//if(26==provinceCode)
+					//{
+						d = Double.parseDouble(strD);
+						if(d>=20){
+							i++;
+							hashProvince.get(provinceCode).getN(clusterKey, year, "20").add(d);
+							hashProvince.get(provinceCode).addV(clusterKey, year, "20", d, bole_height);
+						}
+						if(d>=30){
+							hashProvince.get(provinceCode).getN(clusterKey, year, "30").add(d);
+							hashProvince.get(provinceCode).addV(clusterKey, year, "30", d, bole_height);
+						}
+						if(d>=40){
+							hashProvince.get(provinceCode).getN(clusterKey, year, "40").add(d);
+							hashProvince.get(provinceCode).addV(clusterKey, year, "40", d, bole_height);
+						}
+						if(d>=50){
+							hashProvince.get(provinceCode).getN(clusterKey, year, "50").add(d);
+							hashProvince.get(provinceCode).addV(clusterKey, year, "50", d, bole_height);
+						}
+						if(d>=60){
+							hashProvince.get(provinceCode).getN(clusterKey, year, "60").add(d);
+							hashProvince.get(provinceCode).addV(clusterKey, year, "60", d, bole_height);
+						}
+						if(d>=70){
+							hashProvince.get(provinceCode).getN(clusterKey, year, "70").add(d);
+							hashProvince.get(provinceCode).addV(clusterKey, year, "70", d, bole_height);
+						}
+						if(d>=80){
+							hashProvince.get(provinceCode).getN(clusterKey, year, "80").add(d);
+							hashProvince.get(provinceCode).addV(clusterKey, year, "80", d, bole_height);
+						}
+					}
+				//}
+			}				
+					
 		}
 		
 		System.out.println("i =" + i);
