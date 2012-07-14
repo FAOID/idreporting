@@ -34,7 +34,8 @@ public class ProvinceN {
 
 	
 	public void addV(String clusterKey, Integer year, String diameterRange, double d, double bole_height) {
-		double newV = (0.25 * 3.14 * d * d * bole_height * 0.56) / 10000;
+		//double newV = (0.25 * 3.14 * d * d * bole_height * 0.56) / 10000;
+		double newV = 0.25 * 3.14 * (d/100) * (d/100) * bole_height * 0.7;
 		ArrayList<Double> lv = null;
 		if ("20".equals(diameterRange)) {			
 			lv = getHashV(clusterKey, year, "20");
