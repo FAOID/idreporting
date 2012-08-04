@@ -8,6 +8,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import junit.framework.Assert;
+
+import org.jooq.impl.Factory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openforis.collect.manager.RecordManager;
@@ -17,6 +20,7 @@ import org.openforis.collect.model.RecordSummarySortField;
 import org.openforis.collect.persistence.RecordDao;
 import org.openforis.collect.persistence.RecordPersistenceException;
 import org.openforis.collect.persistence.SurveyDao;
+import org.openforis.collect.persistence.jooq.JooqDaoSupport;
 import org.openforis.idm.metamodel.EntityDefinition;
 import org.openforis.idm.metamodel.NodeDefinition;
 import org.openforis.idm.metamodel.Schema;
@@ -37,6 +41,8 @@ import org.openforis.idm.model.expression.ModelPathExpression;
 import org.openforis.idm.model.expression.internal.MissingValueException;
 import org.openforis.idm.transform.DataTransformation;
 import org.openforis.idm.transform.csv.ModelCsvWriter;
+import org.openforis.idreporting.core.DialectAwareJooqFactory;
+import org.openforis.idreporting.core.FactoryDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -44,7 +50,7 @@ import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "/ImportIdm-context.xml" })
+@ContextConfiguration(locations = { "/idreporting-context.xml" })
 @TransactionConfiguration(defaultRollback = false)
 /**
  * @author Wibowo, Eko
@@ -61,7 +67,18 @@ public class ReportingNV {
 	@Autowired
 	protected RecordManager recordManager;
 
+	@Autowired
+	protected FactoryDao factoryDao;
+	
 	@Test
+	public void testJooq()
+	{
+		DialectAwareJooqFactory jf = factoryDao.getJooqFactory();
+		Assert.assertNotNull(jf);
+		
+	}
+
+	//@Test
 	public void testReportingNV() throws InvalidExpressionException, RecordPersistenceException
 	{
 		/*CollectSurvey survey = surveyDao.load("idnfi");
@@ -191,8 +208,16 @@ public class ReportingNV {
 					}
 					
 					relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
-					CodeAttribute code = (CodeAttribute ) relativeExpression.evaluate(n, null);
-					provinceCode = Integer.parseInt(code.getValue().getCode());
+					CodeAttribute code = null;
+					try {
+						code = (CodeAttribute ) relativeExpression.evaluate(n, null);
+						provinceCode = Integer.parseInt(code.getValue().getCode());
+					}catch(MissingValueException ex)
+					{
+						System.out.println("Province Error on Record = " + record.getId());
+						provinceCode = 33;//TOFIX : temporary quick solution
+					}
+					
 					//if(26==provinceCode)
 					//{
 						d = Double.parseDouble(strD);
