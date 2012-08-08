@@ -43,11 +43,20 @@ import org.openforis.idm.transform.DataTransformation;
 import org.openforis.idm.transform.csv.ModelCsvWriter;
 import org.openforis.idreporting.core.DialectAwareJooqFactory;
 import org.openforis.idreporting.core.FactoryDao;
+import org.openforis.idreporting.model.SchemaCluster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
+import static org.openforis.idreporting.persistence.jooq.tables.SchemaCluster.SCHEMA_CLUSTER;
+import static org.openforis.idreporting.persistence.jooq.tables.SchemaClusterPermanentplota.SCHEMA_CLUSTER_PERMANENTPLOTA;
+import static org.openforis.idreporting.persistence.jooq.tables.SchemaClusterPermanentplotaPlotaenum.SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM;
+import static org.openforis.idreporting.persistence.jooq.tables.SchemaClusterPermanentplotaPlotaenumTreeshigherthan20cm.SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM;
+import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_SEQ_ID;
+import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_PERMANENTPLOTA_SEQ_ID;
+import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_SEQ_ID;
+import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREEHIGHER20CM_SEQ_ID;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "/idreporting-context.xml" })
@@ -56,7 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Wibowo, Eko
  */
 @Transactional
-public class ReportingNV {
+public class TspPspProcessingTest {
 
 	@Autowired
 	protected SurveyDao surveyDao;
@@ -70,12 +79,122 @@ public class ReportingNV {
 	@Autowired
 	protected FactoryDao factoryDao;
 	
-	@Test
+	//@Test
 	public void testJooq()
 	{
 		DialectAwareJooqFactory jf = factoryDao.getJooqFactory();
 		Assert.assertNotNull(jf);
+	}
+	
+	@Test
+	public void testSynchDb() throws RecordPersistenceException, InvalidExpressionException
+	{
+		DialectAwareJooqFactory jf = factoryDao.getJooqFactory();
+		jf.delete(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM).execute();
+		jf.delete(SCHEMA_CLUSTER_PERMANENTPLOTA).execute();
+		jf.delete(SCHEMA_CLUSTER).execute();
 		
+		CollectSurvey survey = surveyDao.load("idnfi");
+		List<CollectRecord> records = recordManager.loadSummaries(survey, "cluster", 0, Integer.MAX_VALUE, (List<RecordSummarySortField>) null, (String) null);
+		for (CollectRecord s : records) {
+			CollectRecord record = recordManager.load(survey, s.getId(), 1);			
+			
+			ExpressionFactory expressionFactory = s.getSurveyContext().getExpressionFactory();
+			String rootEntityName = "/cluster";
+			AbsoluteModelPathExpression expression = expressionFactory.createAbsoluteModelPathExpression(rootEntityName);
+			List<Node<?>> rowNodes = null;
+			try {
+				rowNodes = expression.iterate(record);
+			}catch(MissingValueException ex)
+			{				
+			}
+			
+			int icluster = 0;
+			for(Node<?> n :rowNodes)
+			{
+				++icluster;
+				String utm_zone = extractValues(n, "utm_zone").get(0);
+				String easting = extractValues(n, "easting").get(0);
+				String northing = extractValues(n, "northing").get(0);
+				String year = extractValues(n, "year").get(0);
+				String description = extractValues(n, "description").get(0);
+				
+				int schemaClusterId = jf.nextval(SCHEMA_CLUSTER_SEQ_ID).intValue();
+				jf.insertInto(SCHEMA_CLUSTER)
+					.set(SCHEMA_CLUSTER.ID, schemaClusterId)
+					.set(SCHEMA_CLUSTER.KEY1, utm_zone)
+					.set(SCHEMA_CLUSTER.KEY2, easting)
+					.set(SCHEMA_CLUSTER.KEY3, northing)
+					.set(SCHEMA_CLUSTER.KEY4, year)
+					.set(SCHEMA_CLUSTER.KEY5, description)
+					.execute();
+				
+				AbsoluteModelPathExpression expression1 = expressionFactory.createAbsoluteModelPathExpression("/cluster/permanent_plot_a[" + icluster + "]");
+				List<Node<?>> rowNodes1 = null;
+				try {
+					rowNodes1 = expression1.iterate(record);
+					int ipermanentPlotA = 0;
+					for(Node<?> n1 :rowNodes1)
+					{
+						++ipermanentPlotA;
+						int province = Integer.parseInt(extractValues(n1, "province").get(0));
+						
+						int schemaClusterPermanentPlotAId = jf.nextval(SCHEMA_CLUSTER_PERMANENTPLOTA_SEQ_ID).intValue();
+						jf.insertInto(SCHEMA_CLUSTER_PERMANENTPLOTA)
+							.set(SCHEMA_CLUSTER_PERMANENTPLOTA.ID, schemaClusterPermanentPlotAId)
+							.set(SCHEMA_CLUSTER_PERMANENTPLOTA.PARENT_ID, schemaClusterId)
+							.set(SCHEMA_CLUSTER_PERMANENTPLOTA.PROVINCE_CODE, province)
+							.execute();
+						
+						AbsoluteModelPathExpression expression2 = expressionFactory.createAbsoluteModelPathExpression("/cluster/permanent_plot_a[" + icluster + "]/plota_enum[" + ipermanentPlotA + "]");
+						List<Node<?>> rowNodes2 = null;					
+						rowNodes2 = expression2.iterate(record);
+						int ipermanentPlotA_plotaenum = 0;
+						for(Node<?> n2 :rowNodes2)
+						{
+							++ipermanentPlotA_plotaenum;
+							String sdbb_or_b = extractValues(n2, "dbb_or_b").get(0);
+							if(sdbb_or_b.equals("")) sdbb_or_b="0";//TOFIX: what should be the empty value??/
+							float dbb_or_b = Float.parseFloat(sdbb_or_b);//TOFIX : should this be double???
+							
+							int schemaClusterPermanentPlotA_plotaEnumId = jf.nextval(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_SEQ_ID).intValue();
+							jf.insertInto(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM)
+								.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.ID, schemaClusterPermanentPlotA_plotaEnumId)
+								.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.PARENT_ID, schemaClusterPermanentPlotAId)
+								.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.DBB_OR_B, dbb_or_b)
+								.execute();
+							
+							AbsoluteModelPathExpression expression3 = expressionFactory.createAbsoluteModelPathExpression("/cluster/permanent_plot_a[" + icluster + "]/plota_enum[" + ipermanentPlotA + "]/trees_higher_than_20cm[" + ipermanentPlotA_plotaenum + "]");
+							List<Node<?>> rowNodes3 = null;					
+							rowNodes2 = expression3.iterate(record);
+							int ipermanentPlotA_plotaenum_treehigher20cm = 0;
+							for(Node<?> n3 :rowNodes2)
+							{
+								++ipermanentPlotA_plotaenum_treehigher20cm;
+								String sbole_height = extractValues(n3, "bole_height").get(0);
+								if(sbole_height.equals("")) sbole_height ="0";//TOFIX: what should be the empty value??/
+								float bole_height = Float.parseFloat(sbole_height);//TOFIX : should this be double???
+								
+								int schemaClusterPermanentPlotA_plotaEnum_treehigher20cmId = jf.nextval(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREEHIGHER20CM_SEQ_ID).intValue();
+								jf.insertInto(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM)
+									.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM.ID, schemaClusterPermanentPlotA_plotaEnum_treehigher20cmId)
+									.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM.PARENT_ID, schemaClusterPermanentPlotA_plotaEnumId)
+									.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM.BOLE_HEIGHT, bole_height)
+									.execute();
+							}
+							
+							
+							
+							
+						}
+						
+					}
+				}catch(MissingValueException ex)
+				{				
+				}
+				
+			}
+		}
 	}
 
 	//@Test
@@ -153,7 +272,7 @@ public class ReportingNV {
 			{	
 				String strD = extractValues(n, "dbb_or_b").get(0);
 				double d;
-				int provinceCode;
+				int provinceCode=-1;
 				
 				
 				if(!"".equals(strD))
@@ -214,44 +333,42 @@ public class ReportingNV {
 						provinceCode = Integer.parseInt(code.getValue().getCode());
 					}catch(MissingValueException ex)
 					{
-						System.out.println("Province Error on Record = " + record.getId());
-						provinceCode = 33;//TOFIX : temporary quick solution
+						System.out.println("Province Error on Record = " + record.getId());						
 					}
 					
-					//if(26==provinceCode)
-					//{
-						d = Double.parseDouble(strD);
-						if(d>=20){
-							i++;
-							hashProvince.get(provinceCode).getN(clusterKey, year, "20").add(d);
-							hashProvince.get(provinceCode).addV(clusterKey, year, "20", d, bole_height);
-						}
-						if(d>=30){
-							hashProvince.get(provinceCode).getN(clusterKey, year, "30").add(d);
-							hashProvince.get(provinceCode).addV(clusterKey, year, "30", d, bole_height);
-						}
-						if(d>=40){
-							hashProvince.get(provinceCode).getN(clusterKey, year, "40").add(d);
-							hashProvince.get(provinceCode).addV(clusterKey, year, "40", d, bole_height);
-						}
-						if(d>=50){
-							hashProvince.get(provinceCode).getN(clusterKey, year, "50").add(d);
-							hashProvince.get(provinceCode).addV(clusterKey, year, "50", d, bole_height);
-						}
-						if(d>=60){
-							hashProvince.get(provinceCode).getN(clusterKey, year, "60").add(d);
-							hashProvince.get(provinceCode).addV(clusterKey, year, "60", d, bole_height);
-						}
-						if(d>=70){
-							hashProvince.get(provinceCode).getN(clusterKey, year, "70").add(d);
-							hashProvince.get(provinceCode).addV(clusterKey, year, "70", d, bole_height);
-						}
-						if(d>=80){
-							hashProvince.get(provinceCode).getN(clusterKey, year, "80").add(d);
-							hashProvince.get(provinceCode).addV(clusterKey, year, "80", d, bole_height);
-						}
+					
+					
+					d = Double.parseDouble(strD);
+					if(d>=20){
+						i++;
+						hashProvince.get(provinceCode).getN(clusterKey, year, "20").add(d);
+						hashProvince.get(provinceCode).addV(clusterKey, year, "20", d, bole_height);
 					}
-				//}
+					if(d>=30){
+						hashProvince.get(provinceCode).getN(clusterKey, year, "30").add(d);
+						hashProvince.get(provinceCode).addV(clusterKey, year, "30", d, bole_height);
+					}
+					if(d>=40){
+						hashProvince.get(provinceCode).getN(clusterKey, year, "40").add(d);
+						hashProvince.get(provinceCode).addV(clusterKey, year, "40", d, bole_height);
+					}
+					if(d>=50){
+						hashProvince.get(provinceCode).getN(clusterKey, year, "50").add(d);
+						hashProvince.get(provinceCode).addV(clusterKey, year, "50", d, bole_height);
+					}
+					if(d>=60){
+						hashProvince.get(provinceCode).getN(clusterKey, year, "60").add(d);
+						hashProvince.get(provinceCode).addV(clusterKey, year, "60", d, bole_height);
+					}
+					if(d>=70){
+						hashProvince.get(provinceCode).getN(clusterKey, year, "70").add(d);
+						hashProvince.get(provinceCode).addV(clusterKey, year, "70", d, bole_height);
+					}
+					if(d>=80){
+						hashProvince.get(provinceCode).getN(clusterKey, year, "80").add(d);
+						hashProvince.get(provinceCode).addV(clusterKey, year, "80", d, bole_height);
+					}
+				}
 			}				
 					
 		}
