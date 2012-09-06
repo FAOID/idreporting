@@ -10,6 +10,9 @@ import java.util.List;
 
 import junit.framework.Assert;
 
+import org.jooq.Result;
+import org.jooq.SelectLimitStep;
+import org.jooq.SelectOnStep;
 import org.jooq.impl.Factory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +46,7 @@ import org.openforis.idm.transform.DataTransformation;
 import org.openforis.idm.transform.csv.ModelCsvWriter;
 import org.openforis.idreporting.core.DialectAwareJooqFactory;
 import org.openforis.idreporting.core.FactoryDao;
-import org.openforis.idreporting.model.SchemaCluster;
+import static org.openforis.idreporting.persistence.jooq.tables.ListProvince.LIST_PROVINCE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -86,10 +89,85 @@ public class TspPspProcessingTest {
 		Assert.assertNotNull(jf);
 	}
 	
+	//@Test
+	public void testReportingNvUsingAnalysis() throws RecordPersistenceException, InvalidExpressionException
+	{
+		DialectAwareJooqFactory jf = factoryDao.getJooqFactory();
+		Result<org.jooq.Record> resultProvince = jf.select(LIST_PROVINCE.CODE, LIST_PROVINCE.LABEL).from(LIST_PROVINCE).orderBy(LIST_PROVINCE.CODE).fetch();
+		
+		// 1. Province
+		for(org.jooq.Record province : resultProvince)
+		{
+			Integer provinceCode = province.getValueAsInteger(LIST_PROVINCE.CODE);
+			
+			Result<org.jooq.Record> resultClusterYear = jf.selectDistinct(SCHEMA_CLUSTER.KEY1, SCHEMA_CLUSTER.KEY2, SCHEMA_CLUSTER.KEY3, SCHEMA_CLUSTER.KEY4).
+					from(SCHEMA_CLUSTER_PERMANENTPLOTA).
+					join(SCHEMA_CLUSTER).onKey().
+					join(LIST_PROVINCE).onKey().
+					where(SCHEMA_CLUSTER_PERMANENTPLOTA.PROVINCE_CODE.equal(provinceCode)).
+					and(SCHEMA_CLUSTER.KEY1.equal("49")).
+					and(SCHEMA_CLUSTER.KEY2.equal("750")).
+					and(SCHEMA_CLUSTER.KEY3.equal("9840")).
+					orderBy(SCHEMA_CLUSTER.KEY1, SCHEMA_CLUSTER.KEY2, SCHEMA_CLUSTER.KEY3, SCHEMA_CLUSTER.KEY4).				
+					fetch();
+			
+			System.out.println(provinceCode);
+ 
+			//2. ClusterYear
+			for(org.jooq.Record clusterYear : resultClusterYear)
+			{
+				Integer utmZone = clusterYear.getValueAsInteger(SCHEMA_CLUSTER.KEY1);
+				Integer easting = clusterYear.getValueAsInteger(SCHEMA_CLUSTER.KEY2);
+				String northing = String.format("%04d", clusterYear.getValueAsInteger(SCHEMA_CLUSTER.KEY3));
+				String clusterKey = utmZone + "" +  easting  + "" + northing;
+				Integer year = clusterYear.getValueAsInteger(SCHEMA_CLUSTER.KEY4);
+				
+				System.out.println("\t"+clusterKey);
+				//3. Diameter & Bole Height
+				Result<org.jooq.Record> resultClusterYearDbb = jf.
+				select(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.DBB_OR_B, SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM.BOLE_HEIGHT).
+				from(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM).
+				join(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM).onKey().
+				join(SCHEMA_CLUSTER_PERMANENTPLOTA).onKey().
+				join(SCHEMA_CLUSTER).onKey().
+				join(LIST_PROVINCE).onKey().
+				where(SCHEMA_CLUSTER_PERMANENTPLOTA.PROVINCE_CODE.equal(provinceCode)).
+				and(SCHEMA_CLUSTER.KEY1.equal(utmZone + "")).
+				and(SCHEMA_CLUSTER.KEY2.equal(easting + "")).
+				and(SCHEMA_CLUSTER.KEY3.equal(northing + "")).
+				and(SCHEMA_CLUSTER.KEY4.equal(year+"")).
+				and(SCHEMA_CLUSTER.KEY1.equal("49")).
+				and(SCHEMA_CLUSTER.KEY2.equal("750")).		
+				and(SCHEMA_CLUSTER.KEY3.equal("9840")).
+				orderBy(SCHEMA_CLUSTER.KEY4).				
+				fetch();
+				System.out.println("\t\t" + year);
+				
+				for(org.jooq.Record clusterYearDbb : resultClusterYearDbb)
+				{
+					Double diameter = clusterYearDbb.getValueAsDouble(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.DBB_OR_B);
+					Double bole_height = clusterYearDbb.getValueAsDouble(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM.BOLE_HEIGHT);
+					
+					System.out.println("\t\t\t" + diameter + ";" + bole_height);
+					
+					//20
+					//30
+					//40
+					//50
+					//60
+					//70
+					//80
+					
+				}
+			}
+		}
+	}
+	
 	@Test
 	public void testSynchDb() throws RecordPersistenceException, InvalidExpressionException
 	{
 		DialectAwareJooqFactory jf = factoryDao.getJooqFactory();
+		jf.delete(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM).execute();
 		jf.delete(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM).execute();
 		jf.delete(SCHEMA_CLUSTER_PERMANENTPLOTA).execute();
 		jf.delete(SCHEMA_CLUSTER).execute();
@@ -117,15 +195,24 @@ public class TspPspProcessingTest {
 				String easting = extractValues(n, "easting").get(0);
 				String northing = extractValues(n, "northing").get(0);
 				String year = extractValues(n, "year").get(0);
-				String description = extractValues(n, "description").get(0);
+				String description = extractValues(n, "description").get(0);				
+				String clusterKey = utm_zone + easting + String.format("%04d",Integer.parseInt(northing)); //TOFIX: easting as integer is better
 				
+				if(!utm_zone.equals("49") && !easting.equals("750")) 
+				{
+					System.out.println("SKIPPING : " + utm_zone+":" + easting + ":" + northing + ":" + year +":" + description);
+					continue;
+				}
+				
+				System.out.println(utm_zone+":" + easting + ":" + northing + ":" + year +":" + description);
 				int schemaClusterId = jf.nextval(SCHEMA_CLUSTER_SEQ_ID).intValue();
 				jf.insertInto(SCHEMA_CLUSTER)
 					.set(SCHEMA_CLUSTER.ID, schemaClusterId)
+					.set(SCHEMA_CLUSTER.CLUSTERKEY, clusterKey)
 					.set(SCHEMA_CLUSTER.KEY1, utm_zone)
 					.set(SCHEMA_CLUSTER.KEY2, easting)
 					.set(SCHEMA_CLUSTER.KEY3, northing)
-					.set(SCHEMA_CLUSTER.KEY4, year)
+					.set(SCHEMA_CLUSTER.KEY4, year)					
 					.set(SCHEMA_CLUSTER.KEY5, description)
 					.execute();
 				
@@ -198,7 +285,7 @@ public class TspPspProcessingTest {
 	}
 
 	//@Test
-	public void testReportingNV() throws InvalidExpressionException, RecordPersistenceException
+	public void testReportingNvUsingCollect() throws InvalidExpressionException, RecordPersistenceException
 	{
 		/*CollectSurvey survey = surveyDao.load("idnfi");
 		Schema schema = survey.getSchema();
