@@ -1,15 +1,32 @@
 package test.idnfi.reporting;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import junit.framework.Assert;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jooq.Result;
 import org.jooq.SelectLimitStep;
 import org.jooq.SelectOnStep;
@@ -55,7 +72,6 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.openforis.idreporting.persistence.jooq.tables.SchemaCluster.SCHEMA_CLUSTER;
 import static org.openforis.idreporting.persistence.jooq.tables.SchemaClusterPermanentplota.SCHEMA_CLUSTER_PERMANENTPLOTA;
 import static org.openforis.idreporting.persistence.jooq.tables.SchemaClusterPermanentplotaPlotaenum.SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM;
-import static org.openforis.idreporting.persistence.jooq.tables.SchemaClusterPermanentplotaPlotaenumTreeshigherthan20cm.SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM;
 import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_SEQ_ID;
 import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_PERMANENTPLOTA_SEQ_ID;
 import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_SEQ_ID;
@@ -89,6 +105,7 @@ public class TspPspProcessingTest {
 		Assert.assertNotNull(jf);
 	}
 	
+	/*
 	//@Test
 	public void testReportingNvUsingAnalysis() throws RecordPersistenceException, InvalidExpressionException
 	{
@@ -162,12 +179,21 @@ public class TspPspProcessingTest {
 			}
 		}
 	}
+	*/
 	
-	@Test
+	//@Test
+	public void testClearDb()
+	{
+		DialectAwareJooqFactory jf = factoryDao.getJooqFactory();
+		jf.delete(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM).execute();
+		jf.delete(SCHEMA_CLUSTER_PERMANENTPLOTA).execute();
+		jf.delete(SCHEMA_CLUSTER).execute();
+	}
+
+	//@Test
 	public void testSynchDb() throws RecordPersistenceException, InvalidExpressionException
 	{
 		DialectAwareJooqFactory jf = factoryDao.getJooqFactory();
-		jf.delete(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM).execute();
 		jf.delete(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM).execute();
 		jf.delete(SCHEMA_CLUSTER_PERMANENTPLOTA).execute();
 		jf.delete(SCHEMA_CLUSTER).execute();
@@ -246,6 +272,8 @@ public class TspPspProcessingTest {
 							
 							int schemaClusterPermanentPlotA_plotaEnumId = jf.nextval(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_SEQ_ID).intValue();
 							jf.insertInto(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM)
+								.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.PROVINCE_CODE, province)
+								.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.CLUSTER_ID, schemaClusterId)
 								.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.ID, schemaClusterPermanentPlotA_plotaEnumId)
 								.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.PARENT_ID, schemaClusterPermanentPlotAId)
 								.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.DBB_OR_B, dbb_or_b)
@@ -259,20 +287,18 @@ public class TspPspProcessingTest {
 							{
 								++ipermanentPlotA_plotaenum_treehigher20cm;
 								String sbole_height = extractValues(n3, "bole_height").get(0);
-								if(sbole_height.equals("")) sbole_height ="0";//TOFIX: what should be the empty value??/
+								if(sbole_height.equals("")||sbole_height==null) sbole_height ="0.0";//TOFIX: what should be the empty value??/
 								float bole_height = Float.parseFloat(sbole_height);//TOFIX : should this be double???
-								
-								int schemaClusterPermanentPlotA_plotaEnum_treehigher20cmId = jf.nextval(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREEHIGHER20CM_SEQ_ID).intValue();
-								jf.insertInto(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM)
-									.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM.ID, schemaClusterPermanentPlotA_plotaEnum_treehigher20cmId)
-									.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM.PARENT_ID, schemaClusterPermanentPlotA_plotaEnumId)
-									.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREESHIGHERTHAN20CM.BOLE_HEIGHT, bole_height)
+								float volume = (float) ((0.25 * 3.14 * dbb_or_b * dbb_or_b * bole_height * 0.8)/10000); //V = (0.25 * 3.14 * d^2 * bole_height * 0.56) / 10.000
+								System.out.println("V=" + volume + "," + "B=" + bole_height);
+								//flattenning up into plota_enum
+								jf.update(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM)
+									.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.VOLUME, volume)
+									.set(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.BOLE_HEIGHT,bole_height)
+									.where(SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM.ID.equal(schemaClusterPermanentPlotA_plotaEnumId))		
 									.execute();
+								
 							}
-							
-							
-							
-							
 						}
 						
 					}
@@ -491,6 +517,385 @@ public class TspPspProcessingTest {
 		}
 	}
 	
+	//@Test
+	public void testTahun()
+	{
+		int tahun;
+		Assert.assertEquals(1990, findTahun(1));
+		Assert.assertEquals(1990, findTahun(14));
+		Assert.assertEquals(1991, findTahun(15));
+		Assert.assertEquals(1991, findTahun(28));
+		Assert.assertEquals(1992, findTahun(29));
+		Assert.assertEquals(1992, findTahun(42));
+		
+	}
+	
+	private int findTahun(int kolom) {
+		if(kolom > 14){
+			return 1990 + mapKolom(kolom);	
+		}		
+		return 1990;
+	}
+
+	private int mapKolom(int kolom) {
+		return (kolom/14) +  (kolom % 14) - 1;
+	}
+
+	@Test
+	public void testPOI() throws URISyntaxException
+	{	
+		try {
+			URI uri = new URI("file:///C:/Users/User/Documents/ReportNV.xlsx");
+			URI uriOutput = new URI("file:///C:/Users/User/Documents/ReportNV-output.xlsx");
+			FileInputStream fileInputStream = new FileInputStream(uri.getPath());
+			XSSFWorkbook workbook = new XSSFWorkbook(fileInputStream);
+			XSSFSheet worksheet = workbook.getSheet("Report NV Per Year");
+			int rowNum = 0;
+			Iterator<Row> iter = worksheet.rowIterator();
+			
+
+			
+			while(iter.hasNext())
+			{	
+				rowNum++;
+				Row row = iter.next();
+				
+				if(rowNum==3)
+				{
+					short iheaderKolom;
+					Cell cellHeader;
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("N20");
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("V20");
+					
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("N30");
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("V30");
+					
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("N40");
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("V40");
+					
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("N50");
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("V50");
+					
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("N60");
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("V60");
+					
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("N70");
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("V70");
+					
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("N80");
+					iheaderKolom = row.getLastCellNum();
+					cellHeader = row.createCell(iheaderKolom); 
+					cellHeader.setCellType(Cell.CELL_TYPE_STRING);
+					cellHeader.setCellValue("V80");
+				}
+				//clusterkey
+				String clusterKey = null;
+				int intValue = 0;
+				
+				Cell cell = row.getCell(0);				
+				cell.setCellType(Cell.CELL_TYPE_STRING);
+				try
+				{
+					clusterKey = cell.getStringCellValue();
+					intValue = Integer.parseInt(clusterKey);
+				}catch(Exception ex)
+				{
+					continue;
+				}				
+				System.out.println(clusterKey);
+				
+				
+				//N & V value
+				
+				//menyimpan nilai terkini dari N & V
+				double latestN20 = -1, latestV20 = -1, latestN30 = -1, latestV30 = -1, latestN40 = -1, latestV40 = -1;
+				double latestN50 = -1, latestV50 = -1, latestN60 = -1, latestV60 = -1, latestN70 = -1, latestV70 = -1;
+				double latestN80 = -1, latestV80 = -1;
+				int latestYear = -1;
+				
+				//menyimpan nilai sebelumnya dari latest 
+				double prevN20 = -1, prevV20 = -1, prevN30 = -1, prevV30 = -1, prevN40 = -1, prevV40 = -1;
+				double prevN50 = -1, prevV50 = -1, prevN60 = -1, prevV60 = -1, prevN70 = -1, prevV70 = -1;
+				double prevN80 = -1, prevV80 = -1;
+				int prevYear = -1;
+				
+				
+				
+				for(int iyear = 1990; iyear <= 2012; iyear++)
+				{
+					int startKolom;
+					if(iyear == 1990) {
+						startKolom = 1;
+					}else {
+						startKolom = (14 * (iyear - 1990)) + 1;
+					}
+					
+					Cell cellValue = row.getCell(startKolom);
+					cellValue.setCellType(Cell.CELL_TYPE_STRING);
+					String strValue = cellValue.getStringCellValue();
+					
+					if(strValue.equals(""))
+					{
+						//next year
+						System.out.println("\t" + iyear + " KOSONG, CHECKT NEXT YEAR");
+						continue;
+					}else{
+						
+						if(latestN20!=-1)
+						{
+							//save latest to prev
+							prevYear = latestYear;
+							prevN20 = latestN20;
+							prevV20 = latestV20;
+							
+							prevN30 = latestN30;
+							prevV30 = latestV30;
+							
+							prevN40 = latestN40;
+							prevV40 = latestV40;
+							
+							prevN50 = latestN50;
+							prevV50 = latestV50;
+							
+							prevN60 = latestN60;
+							prevV60 = latestV60;
+							
+							prevN70 = latestN70;
+							prevV70 = latestV70;
+							
+							prevN80 = latestN80;
+							prevV80 = latestV80;
+						} 
+						
+						// new value for latest
+						Cell cellNV;
+						double nv;  
+						
+						latestYear = iyear;
+						cellNV = row.getCell(startKolom); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestN20 = nv;
+						cellNV = row.getCell(startKolom+1);
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestV20 = nv;
+						
+						cellNV = row.getCell(startKolom+2);
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestN30 = nv;
+						cellNV = row.getCell(startKolom+3);
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestV30 = nv;
+						
+						cellNV = row.getCell(startKolom+4); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestN40 = nv;
+						cellNV = row.getCell(startKolom+5); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestV40 = nv;
+						
+						cellNV = row.getCell(startKolom+6); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestN50 = nv;
+						cellNV = row.getCell(startKolom+7); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestV50 = nv;
+						
+						cellNV = row.getCell(startKolom+8); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestN60 = nv;
+						cellNV = row.getCell(startKolom+9); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestV60 = nv;
+						
+						cellNV = row.getCell(startKolom+10); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestN70 = nv;
+						cellNV = row.getCell(startKolom+11); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestV70 = nv;
+						
+						cellNV = row.getCell(startKolom+12); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestN80 = nv;
+						cellNV = row.getCell(startKolom+13); 
+						cellNV.setCellType(Cell.CELL_TYPE_NUMERIC);
+						nv = cellNV.getNumericCellValue();
+						latestV80 = nv;						
+					}
+				}
+				
+				
+				
+				//output the delta
+				double deltaN20 = -1, deltaV20 = -1, deltaN30 = -1, deltaV30 = -1, deltaN40 = -1, deltaV40 = -1;
+				double deltaN50 = -1, deltaV50 = -1, deltaN60 = -1, deltaV60 = -1, deltaN70 = -1, deltaV70 = -1;
+				double deltaN80 = -1, deltaV80 = -1;
+				
+				
+				if(latestYear == 2012 || prevYear == -1){
+					// pakai data 2012
+					deltaN20 = latestN20;
+					deltaV20 = latestV20;
+					deltaN30 = latestN30;
+					deltaV30 = latestV30;
+					deltaN40 = latestN40;
+					deltaV40 = latestV40;
+					deltaN50 = latestN50;
+					deltaV50 = latestV50;
+					deltaN60 = latestN60;
+					deltaV60 = latestV60;
+					deltaN70 = latestN70;
+					deltaV70 = latestV70;
+					deltaN80 = latestN80;
+					deltaV80 = latestV80;
+				}else{
+					deltaN20 = (latestN20 - prevN20) / (latestYear - prevYear);
+					deltaV20 = (latestV20 - prevV20) / (latestYear - prevYear);
+					deltaN30 = (latestN30 - prevN30) / (latestYear - prevYear);
+					deltaV30 = (latestV30 - prevV30) / (latestYear - prevYear);
+					deltaN40 = (latestN40 - prevN40) / (latestYear - prevYear);
+					deltaV40 = (latestV40 - prevV40) / (latestYear - prevYear);
+					deltaN50 = (latestN50 - prevN50) / (latestYear - prevYear);
+					deltaV50 = (latestV50 - prevV50) / (latestYear - prevYear);
+					deltaN60 = (latestN60 - prevN60) / (latestYear - prevYear);
+					deltaV60 = (latestV60 - prevV60) / (latestYear - prevYear);
+					deltaN70 = (latestN70 - prevN70) / (latestYear - prevYear);
+					deltaV70 = (latestV70 - prevV70) / (latestYear - prevYear);
+					deltaN80 = (latestN80 - prevN80) / (latestYear - prevYear);
+					deltaV80 = (latestV80 - prevV80) / (latestYear - prevYear);
+				}
+				
+				int outputKolom;
+				Cell cellOutput;
+				
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaN20);
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaV20);
+				
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaN30);
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaV30);
+				
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaN40);
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaV40);
+				
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaN50);
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaV50);
+				
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaN60);
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaV60);
+				
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaN70);
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaV70);
+				
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaN80);
+				outputKolom = row.getLastCellNum();
+				cellOutput = row.createCell(outputKolom); 
+				cellOutput.setCellType(Cell.CELL_TYPE_NUMERIC);
+				cellOutput.setCellValue(deltaV80);
+				
+				System.out.println("\tprev year = " + prevYear + ", prev N70 " + prevN70 + " prev V70 " + prevV70);
+				System.out.println("\tlatest year = " + latestYear + ", latest N70 " + latestN70 + " latest V70 " + latestV70);
+			}
+			
+			FileOutputStream fileOutputStream = new FileOutputStream(uriOutput.getPath());
+			workbook.write(fileOutputStream);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public String formatTwoDigits(double d) {  
 		DecimalFormat fmt = new DecimalFormat("0.00");  
 		String string = fmt.format(d);  
@@ -513,4 +918,6 @@ public class TspPspProcessingTest {
 			throw new UnsupportedOperationException("Axis must be an Entity");
 		}
 	}
+	
+	
 }
