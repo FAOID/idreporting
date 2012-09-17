@@ -542,7 +542,7 @@ public class TspPspProcessingTest {
 	}
 
 	@Test
-	public void testPOI() throws URISyntaxException
+	public void testHitungDeltaNV() throws URISyntaxException
 	{	
 		try {
 			URI uri = new URI("file:///C:/Users/User/Documents/ReportNV.xlsx");
@@ -631,8 +631,8 @@ public class TspPspProcessingTest {
 				String clusterKey = null;
 				int intValue = 0;
 				
-				Cell cell = row.getCell(0);				
-				cell.setCellType(Cell.CELL_TYPE_STRING);
+				Cell cell = row.getCell(0);
+				if(cell!=null) cell.setCellType(Cell.CELL_TYPE_STRING);
 				try
 				{
 					clusterKey = cell.getStringCellValue();
@@ -669,9 +669,14 @@ public class TspPspProcessingTest {
 						startKolom = (14 * (iyear - 1990)) + 1;
 					}
 					
+					String strValue = "";
 					Cell cellValue = row.getCell(startKolom);
-					cellValue.setCellType(Cell.CELL_TYPE_STRING);
-					String strValue = cellValue.getStringCellValue();
+					if(cellValue!=null) 
+					{
+						cellValue.setCellType(Cell.CELL_TYPE_STRING);
+						strValue = cellValue.getStringCellValue();
+					}
+					
 					
 					if(strValue.equals(""))
 					{
