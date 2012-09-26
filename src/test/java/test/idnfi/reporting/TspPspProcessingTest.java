@@ -25,6 +25,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jooq.Result;
@@ -311,28 +312,33 @@ public class TspPspProcessingTest {
 	}
 
 	//@Test
-	public void testReportingNvUsingCollect() throws InvalidExpressionException, RecordPersistenceException
+	public void testExcelOutput() throws IOException, URISyntaxException
 	{
-		/*CollectSurvey survey = surveyDao.load("idnfi");
-		Schema schema = survey.getSchema();
-		String rootEntityName = "/cluster/permanent_plot_a/plota_enum";
-		EntityDefinition defn = (EntityDefinition) schema.getByPath(rootEntityName);
+		URI uriOutput = new URI("file:///C:/Users/User/Documents/ReportNV-SE-output.xlsx");
+		FileOutputStream fileOutputStream = new FileOutputStream(uriOutput.getPath());
+		XSSFWorkbook workbook = new XSSFWorkbook();		
+		XSSFSheet worksheet = workbook.createSheet("Report NV");
+		workbook.write(fileOutputStream);
+	}
+	
+	@Test
+	public void testReportingNvUsingCollect() throws InvalidExpressionException, RecordPersistenceException, URISyntaxException, IOException
+	{	
 		
-		CollectRecord records = recordDao.load(survey, survey.getId(), 1);
+		URI uriOutput = new URI("file:///C:/Users/User/Documents/ReportNV-SE-output.xlsx");
+		FileOutputStream fileOutputStream = new FileOutputStream(uriOutput.getPath());
+		XSSFWorkbook workbook = new XSSFWorkbook();		
+		XSSFSheet worksheet = workbook.createSheet("Report NV");
 		
-		List<Node<?>> nodes = iterateExpression(rootEntityName,records );
-		System.out.println(nodes.size());*/
+		
 		
 		String rootEntityName = "/cluster/permanent_plot_a/plota_enum";
 		CollectSurvey survey = surveyDao.load("idnfi");
 		List<CollectRecord> records = recordManager.loadSummaries(survey, "cluster", 0, Integer.MAX_VALUE, (List<RecordSummarySortField>) null, (String) null);
 		
-		// mencari berapa cluster yg sudah diinputkan pada masing2 tahun
-		// V = (0.25 * 3.14 * d^2 * bole_height * 0.56) / 10.000
 		
 		HashMap<Integer, ProvinceN> hashProvince = new HashMap<Integer, ProvinceN>();
-		int i=0;
-		//System.out.println("collectRecord size = " + records.size());
+		int i=0;	
 		hashProvince.put(1, new ProvinceN(1,"Daerah Istimewa Aceh"));
 		hashProvince.put(2, new ProvinceN(2,"Sumatera Utara"));
 		hashProvince.put(3, new ProvinceN(3,"Sumatera Barat"));
@@ -486,14 +492,61 @@ public class TspPspProcessingTest {
 					
 		}
 		
-		System.out.println("i =" + i);
-		System.out.println("Provinsi;Cluster;Tahun;N20;V20;N30;V30;N40;V40;N50;V50;N60;V60;N70;V70;N80;V80");
+		
+		
+		//System.out.println("i =" + i);
+		//System.out.println("Provinsi;Cluster;Tahun;N20;V20;N30;V30;N40;V40;N50;V50;N60;V60;N70;V70;N80;V80");
+		XSSFRow rowHeader;
+		XSSFCell cellHeader;
+		
+		rowHeader = worksheet.createRow(0);
+		cellHeader = rowHeader.createCell(0);
+		cellHeader.setCellValue("Provinsi");
+		cellHeader = rowHeader.createCell(1);
+		cellHeader.setCellValue("Klaster");
+		cellHeader = rowHeader.createCell(2);
+		cellHeader.setCellValue("Tahun");
+		cellHeader = rowHeader.createCell(3);
+		cellHeader.setCellValue("N20");
+		cellHeader = rowHeader.createCell(4);
+		cellHeader.setCellValue("V20");
+		cellHeader = rowHeader.createCell(5);
+		cellHeader.setCellValue("N30");
+		cellHeader = rowHeader.createCell(6);
+		cellHeader.setCellValue("V30");
+		cellHeader = rowHeader.createCell(7);
+		cellHeader.setCellValue("N40");
+		cellHeader = rowHeader.createCell(8);
+		cellHeader.setCellValue("V40");
+		cellHeader = rowHeader.createCell(9);
+		cellHeader.setCellValue("N50");
+		cellHeader = rowHeader.createCell(10);
+		cellHeader.setCellValue("V50");
+		cellHeader = rowHeader.createCell(11);
+		cellHeader.setCellValue("N60");
+		cellHeader = rowHeader.createCell(12);
+		cellHeader.setCellValue("V60");
+		cellHeader = rowHeader.createCell(13);
+		cellHeader.setCellValue("N70");
+		cellHeader = rowHeader.createCell(14);
+		cellHeader.setCellValue("V70");
+		cellHeader = rowHeader.createCell(15);
+		cellHeader.setCellValue("N80");
+		cellHeader = rowHeader.createCell(16);
+		cellHeader.setCellValue("V80");
+		
+		int iRow = 1; 
+		XSSFRow rowData = null;
+		XSSFCell cellValue = null;
 		for(int p : hashProvince.keySet())
 		{
 			ProvinceN prov = hashProvince.get(p);
 			if(prov.getHashClusterN().keySet().size()>0) 
 			{
 				System.out.print(prov.getTitle());
+				rowData = worksheet.createRow(iRow);
+				cellValue = rowData.createCell(0);
+				cellValue.setCellValue(prov.getTitle());
 			}
 			
 			for(String clusterKey : prov.getHashClusterN().keySet())//province
@@ -502,20 +555,80 @@ public class TspPspProcessingTest {
 				{					
 					for(Integer year : prov.getHashClusterN().get(clusterKey).get(20).keySet())
 					{
-						System.out.println(";" + clusterKey + ";" + year + ";" + 
-							prov.getHashN(clusterKey, year, "20").size() + ";" + (prov.getHashV(clusterKey, year, "20").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "20").get(0))) + ";" +
-							prov.getHashN(clusterKey, year, "30").size() + ";" + (prov.getHashV(clusterKey, year, "30").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "30").get(0))) + ";" +
-							prov.getHashN(clusterKey, year, "40").size() + ";" + (prov.getHashV(clusterKey, year, "40").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "40").get(0))) + ";" +
-							prov.getHashN(clusterKey, year, "50").size() + ";" + (prov.getHashV(clusterKey, year, "50").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "50").get(0))) + ";" +
-							prov.getHashN(clusterKey, year, "60").size() + ";" + (prov.getHashV(clusterKey, year, "60").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "60").get(0))) + ";" +
-							prov.getHashN(clusterKey, year, "70").size() + ";" + (prov.getHashV(clusterKey, year, "70").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "70").get(0))) + ";" +
-							prov.getHashN(clusterKey, year, "80").size() + ";" + (prov.getHashV(clusterKey, year, "80").size()==0?"0": formatTwoDigits(prov.getHashV(clusterKey, year, "80").get(0)))
-						);
+						cellValue = rowData.createCell(1);
+						cellValue.setCellValue(clusterKey);
+						
+						cellValue = rowData.createCell(2);
+						cellValue.setCellValue(year);
+						
+						int n20 = prov.getHashN(clusterKey, year, "20").size();
+						double v20  = prov.getHashV(clusterKey, year, "20").size()==0? 0: prov.getHashV(clusterKey, year, "20").get(0);
+						
+						int n30 = prov.getHashN(clusterKey, year, "30").size();
+						double v30  = prov.getHashV(clusterKey, year, "30").size()==0? 0: prov.getHashV(clusterKey, year, "30").get(0);
+						
+						int n40 = prov.getHashN(clusterKey, year, "40").size();
+						double v40  = prov.getHashV(clusterKey, year, "40").size()==0? 0: prov.getHashV(clusterKey, year, "40").get(0);
+						
+						int n50 = prov.getHashN(clusterKey, year, "50").size();
+						double v50  = prov.getHashV(clusterKey, year, "50").size()==0? 0: prov.getHashV(clusterKey, year, "50").get(0);
+						
+						int n60 = prov.getHashN(clusterKey, year, "60").size();
+						double v60  = prov.getHashV(clusterKey, year, "60").size()==0? 0: prov.getHashV(clusterKey, year, "60").get(0);
+						
+						int n70 = prov.getHashN(clusterKey, year, "70").size();
+						double v70  = prov.getHashV(clusterKey, year, "70").size()==0? 0: prov.getHashV(clusterKey, year, "70").get(0);
+						
+						int n80 = prov.getHashN(clusterKey, year, "80").size();
+						double v80  = prov.getHashV(clusterKey, year, "80").size()==0? 0: prov.getHashV(clusterKey, year, "80").get(0);
+						
+						cellValue = rowData.createCell(3);
+						cellValue.setCellValue(n20);
+						cellValue = rowData.createCell(4);
+						cellValue.setCellValue(v20);
+						
+						cellValue = rowData.createCell(5);
+						cellValue.setCellValue(n30);
+						cellValue = rowData.createCell(6);
+						cellValue.setCellValue(v30);
+						
+						cellValue = rowData.createCell(7);
+						cellValue.setCellValue(n40);
+						cellValue = rowData.createCell(8);
+						cellValue.setCellValue(v40);
+						
+						cellValue = rowData.createCell(9);
+						cellValue.setCellValue(n50);
+						cellValue = rowData.createCell(10);
+						cellValue.setCellValue(v50);
+						
+						cellValue = rowData.createCell(11);
+						cellValue.setCellValue(n60);
+						cellValue = rowData.createCell(12);
+						cellValue.setCellValue(v60);
+						
+						cellValue = rowData.createCell(13);
+						cellValue.setCellValue(n70);
+						cellValue = rowData.createCell(14);
+						cellValue.setCellValue(v70);
+						
+						cellValue = rowData.createCell(15);
+						cellValue.setCellValue(n80);
+						cellValue = rowData.createCell(16);
+						cellValue.setCellValue(v80);						
+						
+						//prepare new row
+						iRow++;
+						rowData = worksheet.createRow(iRow);
+						cellValue = rowData.createCell(0);
+						cellValue.setCellValue(prov.getTitle());
 					}
 				}
 			}
 		}
+		workbook.write(fileOutputStream);
 	}
+	
 	
 	//@Test
 	public void testTahun()
@@ -541,7 +654,7 @@ public class TspPspProcessingTest {
 		return (kolom/14) +  (kolom % 14) - 1;
 	}
 
-	@Test
+	//@Test
 	public void testHitungDeltaNV() throws URISyntaxException
 	{	
 		try {
