@@ -305,8 +305,7 @@ public class TspPspProcessingTest {
 					}
 				}catch(MissingValueException ex)
 				{				
-				}
-				
+				}				
 			}
 		}
 	}
@@ -321,11 +320,11 @@ public class TspPspProcessingTest {
 		workbook.write(fileOutputStream);
 	}
 	
-	@Test
-	public void testReportingNvUsingCollect() throws InvalidExpressionException, RecordPersistenceException, URISyntaxException, IOException
+	//@Test
+	public void testReportingNvUsingCollectSTEP1() throws InvalidExpressionException, RecordPersistenceException, URISyntaxException, IOException
 	{	
 		
-		URI uriOutput = new URI("file:///C:/Users/User/Documents/ReportNV-SE-output.xlsx");
+		URI uriOutput = new URI("file:///C:/Users/User/Documents/ReportNV-SE.xlsx");
 		FileOutputStream fileOutputStream = new FileOutputStream(uriOutput.getPath());
 		XSSFWorkbook workbook = new XSSFWorkbook();		
 		XSSFSheet worksheet = workbook.createSheet("Report NV");
@@ -375,6 +374,8 @@ public class TspPspProcessingTest {
 		
 		ModelPathExpression relativeExpression;
 		for (CollectRecord s : records) {
+			//clear data
+			
 			ExpressionFactory expressionFactory = s.getSurveyContext().getExpressionFactory();
 			AbsoluteModelPathExpression expression = expressionFactory.createAbsoluteModelPathExpression(rootEntityName);
 			CollectRecord record = recordManager.load(survey, s.getId(), 1);
@@ -534,6 +535,8 @@ public class TspPspProcessingTest {
 		cellHeader.setCellValue("N80");
 		cellHeader = rowHeader.createCell(16);
 		cellHeader.setCellValue("V80");
+		cellHeader = rowHeader.createCell(17);
+		cellHeader.setCellValue("Standar Deviasi");
 		
 		int iRow = 1; 
 		XSSFRow rowData = null;
@@ -561,26 +564,35 @@ public class TspPspProcessingTest {
 						cellValue = rowData.createCell(2);
 						cellValue.setCellValue(year);
 						
+						VolumeStatistic vstats20 = prov.getVolume(clusterKey, year, "20");
 						int n20 = prov.getHashN(clusterKey, year, "20").size();
-						double v20  = prov.getHashV(clusterKey, year, "20").size()==0? 0: prov.getHashV(clusterKey, year, "20").get(0);
+						double v20  = prov.getHashV(clusterKey, year, "20").size()==0? 0: vstats20.getTotalV();
 						
+						VolumeStatistic vstats30 = prov.getVolume(clusterKey, year, "30");
 						int n30 = prov.getHashN(clusterKey, year, "30").size();
-						double v30  = prov.getHashV(clusterKey, year, "30").size()==0? 0: prov.getHashV(clusterKey, year, "30").get(0);
+						double v30  = prov.getHashV(clusterKey, year, "30").size()==0? 0: vstats30.getTotalV();
 						
+						VolumeStatistic vstats40 = prov.getVolume(clusterKey, year, "40");
 						int n40 = prov.getHashN(clusterKey, year, "40").size();
-						double v40  = prov.getHashV(clusterKey, year, "40").size()==0? 0: prov.getHashV(clusterKey, year, "40").get(0);
+						double v40  = prov.getHashV(clusterKey, year, "40").size()==0? 0: vstats40.getTotalV();
 						
+						VolumeStatistic vstats50 = prov.getVolume(clusterKey, year, "50");
 						int n50 = prov.getHashN(clusterKey, year, "50").size();
-						double v50  = prov.getHashV(clusterKey, year, "50").size()==0? 0: prov.getHashV(clusterKey, year, "50").get(0);
+						double v50  = prov.getHashV(clusterKey, year, "50").size()==0? 0: vstats50.getTotalV();
 						
+						VolumeStatistic vstats60 = prov.getVolume(clusterKey, year, "60");
 						int n60 = prov.getHashN(clusterKey, year, "60").size();
-						double v60  = prov.getHashV(clusterKey, year, "60").size()==0? 0: prov.getHashV(clusterKey, year, "60").get(0);
+						double v60  = prov.getHashV(clusterKey, year, "60").size()==0? 0: vstats60.getTotalV();
 						
+						VolumeStatistic vstats70 = prov.getVolume(clusterKey, year, "70");
 						int n70 = prov.getHashN(clusterKey, year, "70").size();
-						double v70  = prov.getHashV(clusterKey, year, "70").size()==0? 0: prov.getHashV(clusterKey, year, "70").get(0);
+						double v70  = prov.getHashV(clusterKey, year, "70").size()==0? 0: vstats70.getTotalV();
 						
+						VolumeStatistic vstats80 = prov.getVolume(clusterKey, year, "80");
 						int n80 = prov.getHashN(clusterKey, year, "80").size();
-						double v80  = prov.getHashV(clusterKey, year, "80").size()==0? 0: prov.getHashV(clusterKey, year, "80").get(0);
+						double v80  = prov.getHashV(clusterKey, year, "80").size()==0? 0: vstats80.getTotalV();
+						
+						VolumeStatistic vstats = prov.getStandarDeviation(clusterKey, year);
 						
 						cellValue = rowData.createCell(3);
 						cellValue.setCellValue(n20);
@@ -616,6 +628,9 @@ public class TspPspProcessingTest {
 						cellValue.setCellValue(n80);
 						cellValue = rowData.createCell(16);
 						cellValue.setCellValue(v80);						
+						
+						cellValue = rowData.createCell(17);
+						cellValue.setCellValue(vstats.getStandardDeviation());
 						
 						//prepare new row
 						iRow++;
@@ -654,12 +669,12 @@ public class TspPspProcessingTest {
 		return (kolom/14) +  (kolom % 14) - 1;
 	}
 
-	//@Test
-	public void testHitungDeltaNV() throws URISyntaxException
+	@Test
+	public void testReportingNvUsingCollectSTEP2() throws URISyntaxException
 	{	
 		try {
-			URI uri = new URI("file:///C:/Users/User/Documents/ReportNV.xlsx");
-			URI uriOutput = new URI("file:///C:/Users/User/Documents/ReportNV-output.xlsx");
+			URI uri = new URI("file:///C:/Users/User/Documents/ReportNV-SE.xlsx");
+			URI uriOutput = new URI("file:///C:/Users/User/Documents/ReportNV-SE.xlsx");
 			FileInputStream fileInputStream = new FileInputStream(uri.getPath());
 			XSSFWorkbook workbook = new XSSFWorkbook(fileInputStream);
 			XSSFSheet worksheet = workbook.getSheet("Report NV Per Year");

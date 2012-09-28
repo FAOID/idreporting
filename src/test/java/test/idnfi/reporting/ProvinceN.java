@@ -3,6 +3,8 @@ package test.idnfi.reporting;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.apache.commons.math.stat.DescriptiveStatistics;
+
 public class ProvinceN {
 	private int code;
 	private String title;
@@ -53,14 +55,14 @@ public class ProvinceN {
 			lv = getHashV(clusterKey, year, "80");
 		}
 
-		if (lv.size() == 0) {
-			lv.add(newV);
-		} else {
-			Double oldV = lv.get(0);
-			newV += oldV;
-			lv.clear();
-			lv.add(newV);
-		}
+		//if (lv.size() == 0) {
+//			lv.add(newV);
+//		} else {
+			//Double oldV = lv.get(0);
+			//newV += oldV;
+			//lv.clear();
+		lv.add(newV);			
+		//}
 	}
 
 	public ArrayList<Double> getHashV(String clusterKey, Integer year, String diameterRange) {
@@ -305,6 +307,61 @@ public class ProvinceN {
 	
 	public HashMap<String, HashMap<Integer, HashMap<Integer, ArrayList<Double>>>> getHashClusterN() {
 		return hashClusterN;
+	}
+
+	// SD per diameter tersedia jika diperlukan
+	public VolumeStatistic getVolume(String clusterKey, Integer year, String string) {
+		
+		DescriptiveStatistics stats = DescriptiveStatistics.newInstance();
+		float totalV = 0;
+		for(double v : getHashV(clusterKey, year, "20"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		return new VolumeStatistic(totalV, stats.getStandardDeviation());
+	}
+
+	public VolumeStatistic getStandarDeviation(String clusterKey, Integer year) {
+		
+		DescriptiveStatistics stats = DescriptiveStatistics.newInstance();
+		float totalV = 0;
+		for(double v : getHashV(clusterKey, year, "20"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashV(clusterKey, year, "30"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashV(clusterKey, year, "40"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashV(clusterKey, year, "50"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashV(clusterKey, year, "60"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashV(clusterKey, year, "70"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashV(clusterKey, year, "80"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}		
+		return new VolumeStatistic(totalV, stats.getStandardDeviation()); 
 	}
 
 }
