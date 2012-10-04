@@ -586,7 +586,8 @@ public class TspPspProcessingTest {
 						provinceCode = Integer.parseInt(code.getValue().getCode());
 					}catch(MissingValueException ex)
 					{
-						System.out.println("Province Error on Record = " + record.getId());						
+						System.out.println("Province Error on Record = " + record.getId());
+						//continue;
 					}
 					
 					
