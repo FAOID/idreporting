@@ -320,7 +320,7 @@ public class TspPspProcessingTest {
 		workbook.write(fileOutputStream);
 	}
 	
-	//@Test
+	@Test
 	public void testReportingNvUsingCollectSTEP1() throws InvalidExpressionException, RecordPersistenceException, URISyntaxException, IOException
 	{	
 		
