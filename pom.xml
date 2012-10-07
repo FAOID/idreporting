@@ -5,11 +5,11 @@
   <version>0.0.1-SNAPSHOT</version>
   <dependencies>
   	
-  	<dependency>
+  	<!-- <dependency>
   		<groupId>org.openforis.idreporting.core</groupId>
   		<artifactId>idreporting-core</artifactId>
   		<version>0.0.1-SNAPSHOT</version>
-  	</dependency>
+  	</dependency> -->
   		<dependency>
 			<groupId>commons-discovery</groupId>
 			<artifactId>commons-discovery</artifactId>

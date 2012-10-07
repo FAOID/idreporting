@@ -30,20 +30,20 @@
 		<property name="username" value="${collect.devdb.username}" />
 		<property name="password" value="${collect.devdb.password}" />
 	</bean>
-	
+	<!-- 
 	<bean id="dataSourceAnalyze" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		<property name="driverClassName" value="org.postgresql.Driver" />
 		<property name="url" value="${collect_analyze.devdb.url}"/>
 		<property name="username" value="${collect_analyze.devdb.username}" />
 		<property name="password" value="${collect_analyze.devdb.password}" />
 	</bean>
+	 -->
 	
-	
-	
+	<!-- 
 	<bean id="factoryDao" class="org.openforis.idreporting.core.FactoryDao">
 		<property name="dataSource" ref="dataSourceAnalyze"/>
 	</bean>
-	
+	 -->
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource"/>
 	</bean>

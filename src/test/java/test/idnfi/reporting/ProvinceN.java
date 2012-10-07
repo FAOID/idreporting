@@ -58,6 +58,17 @@ public class ProvinceN {
 		} else if ("80".equals(diameterRange)) {
 			lv = getHashPlotaV(clusterKey, year, "80");
 		}
+		
+		/*if (lv.size() == 0) {
+			lv.add(newV);
+		} else {
+			Double oldV = lv.get(0);
+			newV += oldV;
+			lv.clear();
+			lv.add(newV);
+
+                        }*/
+		// add all V to be able to calculate SDV
 		lv.add(newV);			
 	}
 	
@@ -80,6 +91,17 @@ public class ProvinceN {
 		} else if ("80".equals(diameterRange)) {
 			lv = getHashTract5V(clusterKey, year, "80");
 		}
+		/*if (lv.size() == 0) {
+			lv.add(newV);
+		} else {
+			Double oldV = lv.get(0);
+			newV += oldV;
+			lv.clear();
+			lv.add(newV);
+
+                        }*/
+		
+		// add all V to be able to calculate SDV
 		lv.add(newV);			
 	}
 
@@ -583,7 +605,50 @@ public class ProvinceN {
 		return new VolumeStatistic(totalV, stats.getStandardDeviation());
 	}
 
-	public VolumeStatistic getStandarDeviation(String clusterKey, Integer year) {
+	public VolumeStatistic getTract5StandarDeviation(String clusterKey, Integer year) {
+		
+		DescriptiveStatistics stats = DescriptiveStatistics.newInstance();
+		float totalV = 0;
+		for(double v : getHashTract5V(clusterKey, year, "20"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashTract5V(clusterKey, year, "30"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashTract5V(clusterKey, year, "40"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashTract5V(clusterKey, year, "50"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashTract5V(clusterKey, year, "60"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashTract5V(clusterKey, year, "70"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		for(double v : getHashTract5V(clusterKey, year, "80"))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}		
+		return new VolumeStatistic(totalV, stats.getStandardDeviation()); 
+	}
+	
+	
+public VolumeStatistic getPlotaStandarDeviation(String clusterKey, Integer year) {
 		
 		DescriptiveStatistics stats = DescriptiveStatistics.newInstance();
 		float totalV = 0;

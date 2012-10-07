@@ -62,22 +62,22 @@ import org.openforis.idm.model.expression.ModelPathExpression;
 import org.openforis.idm.model.expression.internal.MissingValueException;
 import org.openforis.idm.transform.DataTransformation;
 import org.openforis.idm.transform.csv.ModelCsvWriter;
-import org.openforis.idreporting.core.DialectAwareJooqFactory;
-import org.openforis.idreporting.core.FactoryDao;
-import static org.openforis.idreporting.persistence.jooq.tables.ListProvince.LIST_PROVINCE;
+//import org.openforis.idreporting.core.DialectAwareJooqFactory;
+//import org.openforis.idreporting.core.FactoryDao;
+//import static org.openforis.idreporting.persistence.jooq.tables.ListProvince.LIST_PROVINCE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
-import static org.openforis.idreporting.persistence.jooq.tables.SchemaCluster.SCHEMA_CLUSTER;
+/*import static org.openforis.idreporting.persistence.jooq.tables.SchemaCluster.SCHEMA_CLUSTER;
 import static org.openforis.idreporting.persistence.jooq.tables.SchemaClusterPermanentplota.SCHEMA_CLUSTER_PERMANENTPLOTA;
 import static org.openforis.idreporting.persistence.jooq.tables.SchemaClusterPermanentplotaPlotaenum.SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM;
 import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_SEQ_ID;
 import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_PERMANENTPLOTA_SEQ_ID;
 import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_SEQ_ID;
 import static org.openforis.idreporting.persistence.jooq.Sequences.SCHEMA_CLUSTER_PERMANENTPLOTA_PLOTAENUM_TREEHIGHER20CM_SEQ_ID;
-
+*/
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "/idreporting-context.xml" })
 @TransactionConfiguration(defaultRollback = false)
@@ -96,15 +96,15 @@ public class TspPspProcessingTest {
 	@Autowired
 	protected RecordManager recordManager;
 
-	@Autowired
-	protected FactoryDao factoryDao;
+	//@Autowired
+	//protected FactoryDao factoryDao;
 	
-	//@Test
+	/*@Test
 	public void testJooq()
 	{
 		DialectAwareJooqFactory jf = factoryDao.getJooqFactory();
 		Assert.assertNotNull(jf);
-	}
+	}*/
 	
 	/*
 	//@Test
@@ -182,6 +182,7 @@ public class TspPspProcessingTest {
 	}
 	*/
 	
+	/*
 	//@Test
 	public void testClearDb()
 	{
@@ -309,7 +310,7 @@ public class TspPspProcessingTest {
 			}
 		}
 	}
-
+*/
 	//@Test
 	public void testExcelOutput() throws IOException, URISyntaxException
 	{
@@ -324,17 +325,29 @@ public class TspPspProcessingTest {
 	public void testReportingNvUsingCollectSTEP1() throws InvalidExpressionException, RecordPersistenceException, URISyntaxException, IOException
 	{	
 		
-		URI uriOutput = new URI("file:///C:/Users/User/Documents/ReportNV-SE.xlsx");
-		FileOutputStream fileOutputStream = new FileOutputStream(uriOutput.getPath());
-		XSSFWorkbook workbook = new XSSFWorkbook();		
-		XSSFSheet worksheet = workbook.createSheet("Report NV");
+            URI uriOutput;
+            FileOutputStream fileOutputStream; 
+
+            XSSFWorkbook workbook;
+            CollectSurvey survey;
+            int iStart = 0;
+            int iIncrement = 500;
+            int iMax = 5000;
+            survey = surveyDao.load("idnfi");
+            for(int iExcel=iStart; iExcel<=iMax; iExcel+=iIncrement)
+            {
+                workbook = new XSSFWorkbook();		
+                uriOutput = new URI("/Users/ekowibowo/faoid/ReportNV-SE-"+iExcel+"-"+(iExcel+iIncrement-1)+".xlsx");
+                fileOutputStream = new FileOutputStream(uriOutput.getPath());
+                XSSFSheet worksheet = workbook.createSheet("Report NV");
 		
+                System.out.println("Creating file " + uriOutput.getPath());
+                
 		String rootEntityName;
-		CollectSurvey survey;
 		List<CollectRecord> records;
 		ModelPathExpression relativeExpression;
 		
-		survey = surveyDao.load("idnfi");
+		
 		HashMap<Integer, ProvinceN> hashProvince = new HashMap<Integer, ProvinceN>();
 		int i=0;	
 		hashProvince.put(1, new ProvinceN(1,"Daerah Istimewa Aceh"));
@@ -372,7 +385,7 @@ public class TspPspProcessingTest {
 		hashProvince.put(33, new ProvinceN(33,"Irian Barat"));
 		
 		
-		records = recordManager.loadSummaries(survey, "cluster", 0, Integer.MAX_VALUE, (List<RecordSummarySortField>) null, (String) null);
+		records = recordManager.loadSummaries(survey, "cluster", iExcel, (iExcel + iIncrement - 1), (List<RecordSummarySortField>) null, (String) null);
 		rootEntityName = "/cluster/permanent_plot_a/plota_enum";
 		
 		for (CollectRecord s : records) {
@@ -418,7 +431,7 @@ public class TspPspProcessingTest {
 					
 					
 					String clusterKey = utmZone + "" + easting + "" + String.format("%04d", northing)  + "";
-					System.out.println(utmZone + ":" + easting + ":" + String.format("%04d", northing)  + "");
+					//System.out.println(utmZone + ":" + easting + ":" + String.format("%04d", northing)  + "");
 					
 					//year
 					relativeExpression = expressionFactory.createModelPathExpression("parent()/year");
@@ -455,7 +468,8 @@ public class TspPspProcessingTest {
 						provinceCode = Integer.parseInt(code.getValue().getCode());
 					}catch(MissingValueException ex)
 					{
-						System.out.println("Province Error on Record = " + record.getId());						
+						System.out.println("Province Error on Record = " + record.getId());
+                                                continue;
 					}
 					
 					
@@ -494,7 +508,7 @@ public class TspPspProcessingTest {
 			}		
 		}
 		
-		
+		//System.out.println("Processing tract5");
 		// TRACT 5
 		rootEntityName = "/cluster/natural_forest/tp";
 		//records = recordManager.loadSummaries(survey, "cluster", 0, Integer.MAX_VALUE, (List<RecordSummarySortField>) null, (String) null);
@@ -523,6 +537,7 @@ public class TspPspProcessingTest {
 					continue;
 				}
 				
+				//System.out.println("\tGetting diameter of Tract 5 tree");	
 				String strD = extractValues(n, "diameter").get(0);
 				double d;
 				int provinceCode=-1;
@@ -587,7 +602,7 @@ public class TspPspProcessingTest {
 					}catch(MissingValueException ex)
 					{
 						System.out.println("Province Error on Record = " + record.getId());
-						//continue;
+						continue;
 					}
 					
 					
@@ -643,66 +658,81 @@ public class TspPspProcessingTest {
 		
 		//enumerasi/tract5
 		cellHeader = rowHeader.createCell(3);
-		cellHeader.setCellValue("Tract 5 N20");
+		cellHeader.setCellValue("TSP N20");
 		cellHeader = rowHeader.createCell(4);
-		cellHeader.setCellValue("Tract 5 V20");
-		cellHeader = rowHeader.createCell(5);
-		cellHeader.setCellValue("Tract 5 N30");
-		cellHeader = rowHeader.createCell(6);
-		cellHeader.setCellValue("Tract 5 V30");
-		cellHeader = rowHeader.createCell(7);
-		cellHeader.setCellValue("Tract 5 N40");
+		cellHeader.setCellValue("TSP V20");
+                cellHeader = rowHeader.createCell(5);//18=>5
+		cellHeader.setCellValue("PSP N20");
+		cellHeader = rowHeader.createCell(6);//19=>6
+		cellHeader.setCellValue("PSP V20");
+
+                cellHeader = rowHeader.createCell(7);//5=?7
+		cellHeader.setCellValue("TSP N30");
 		cellHeader = rowHeader.createCell(8);
-		cellHeader.setCellValue("Tract 5 V40");
-		cellHeader = rowHeader.createCell(9);
-		cellHeader.setCellValue("Tract 5 N50");
+		cellHeader.setCellValue("TSP V30");
+                cellHeader = rowHeader.createCell(9);
+		cellHeader.setCellValue("PSP N30");
 		cellHeader = rowHeader.createCell(10);
-		cellHeader.setCellValue("Tract 5 V50");
+		cellHeader.setCellValue("PSP V30");
+
 		cellHeader = rowHeader.createCell(11);
-		cellHeader.setCellValue("Tract 5 N60");
+		cellHeader.setCellValue("TSP N40");
 		cellHeader = rowHeader.createCell(12);
-		cellHeader.setCellValue("Tract 5 V60");
-		cellHeader = rowHeader.createCell(13);
-		cellHeader.setCellValue("Tract 5 N70");
+		cellHeader.setCellValue("TSP V40");
+                cellHeader = rowHeader.createCell(13);
+		cellHeader.setCellValue("PSP N40");
 		cellHeader = rowHeader.createCell(14);
-		cellHeader.setCellValue("Tract 5 V70");
+		cellHeader.setCellValue("PSP V40");
+
 		cellHeader = rowHeader.createCell(15);
-		cellHeader.setCellValue("Tract 5 N80");
+		cellHeader.setCellValue("TSP N50");
 		cellHeader = rowHeader.createCell(16);
-		cellHeader.setCellValue("Tract 5 V80");
-		cellHeader = rowHeader.createCell(17);
-		cellHeader.setCellValue("Standar Deviasi");
-		
+		cellHeader.setCellValue("TSP V50");
+                cellHeader = rowHeader.createCell(17);
+		cellHeader.setCellValue("PSP N50");
 		cellHeader = rowHeader.createCell(18);
-		cellHeader.setCellValue("Plot A N20");
-		cellHeader = rowHeader.createCell(19);//4=>18, +14
-		cellHeader.setCellValue("Plot A V20");
+		cellHeader.setCellValue("PSP V50");
+	
+
+		cellHeader = rowHeader.createCell(19);
+		cellHeader.setCellValue("TSP N60");
 		cellHeader = rowHeader.createCell(20);
-		cellHeader.setCellValue("Plot A N30");
-		cellHeader = rowHeader.createCell(21);
-		cellHeader.setCellValue("Plot A V30");
+		cellHeader.setCellValue("TSP V60");
+                cellHeader = rowHeader.createCell(21);
+                cellHeader.setCellValue("PSP N60");
 		cellHeader = rowHeader.createCell(22);
-		cellHeader.setCellValue("Plot A N40");
+		cellHeader.setCellValue("PSP V60");
+
 		cellHeader = rowHeader.createCell(23);
-		cellHeader.setCellValue("Plot A V40");
+		cellHeader.setCellValue("TSP N70");
 		cellHeader = rowHeader.createCell(24);
-		cellHeader.setCellValue("Plot A N50");
-		cellHeader = rowHeader.createCell(25);
-		cellHeader.setCellValue("Plot A V50");
+		cellHeader.setCellValue("TSP V70");
+                cellHeader = rowHeader.createCell(25);
+		cellHeader.setCellValue("PSP N70");
 		cellHeader = rowHeader.createCell(26);
-		cellHeader.setCellValue("Plot A N60");
+		cellHeader.setCellValue("PSP V70");
+
 		cellHeader = rowHeader.createCell(27);
-		cellHeader.setCellValue("Plot A V60");
+		cellHeader.setCellValue("TSP N80");
 		cellHeader = rowHeader.createCell(28);
-		cellHeader.setCellValue("Plot A N70");
-		cellHeader = rowHeader.createCell(29);
-		cellHeader.setCellValue("Plot A V70");
+		cellHeader.setCellValue("TSP V80");
+                cellHeader = rowHeader.createCell(29);
+		cellHeader.setCellValue("PSP N80");
 		cellHeader = rowHeader.createCell(30);
-		cellHeader.setCellValue("Plot A N80");
+		cellHeader.setCellValue("PSP V80");
+
 		cellHeader = rowHeader.createCell(31);
-		cellHeader.setCellValue("Plot A V80");
-		cellHeader = rowHeader.createCell(32);
-		cellHeader.setCellValue("Standar Deviasi");
+		cellHeader.setCellValue("Standar Deviasi TSP");
+                cellHeader = rowHeader.createCell(32);
+		cellHeader.setCellValue("Standar Deviasi PSP");
+		
+	
+		
+		
+	
+		
+	
+	
 		
 		int iRow = 1; 
 		XSSFRow rowData = null;
@@ -760,7 +790,9 @@ public class TspPspProcessingTest {
 						int nTract580 = prov.getHashTract5N(clusterKey, year, "80").size();
 						double vTract580  = prov.getHashTract5V(clusterKey, year, "80").size()==0? 0: vstatsTract580.getTotalV();
 						
-						VolumeStatistic vTract5Stats = prov.getStandarDeviation(clusterKey, year);
+						//System.out.println("\tCalculating Standar Deviation of Tract5..");
+						VolumeStatistic vTract5Stats = prov.getTract5StandarDeviation(clusterKey, year);
+						//System.out.println("\tDONE");
 						
 						//enumerasi/tract 5
 						cellValue = rowData.createCell(3);
@@ -768,37 +800,37 @@ public class TspPspProcessingTest {
 						cellValue = rowData.createCell(4);
 						cellValue.setCellValue(vTract520);
 						
-						cellValue = rowData.createCell(5);
+						cellValue = rowData.createCell(7);
 						cellValue.setCellValue(nTract530);
-						cellValue = rowData.createCell(6);
+						cellValue = rowData.createCell(8);
 						cellValue.setCellValue(vTract530);
 						
-						cellValue = rowData.createCell(7);
+						cellValue = rowData.createCell(11);
 						cellValue.setCellValue(nTract540);
-						cellValue = rowData.createCell(8);
+						cellValue = rowData.createCell(12);
 						cellValue.setCellValue(vTract540);
 						
-						cellValue = rowData.createCell(9);
+						cellValue = rowData.createCell(15);
 						cellValue.setCellValue(nTract550);
-						cellValue = rowData.createCell(10);
+						cellValue = rowData.createCell(16);
 						cellValue.setCellValue(vTract550);
 						
-						cellValue = rowData.createCell(11);
+						cellValue = rowData.createCell(19);
 						cellValue.setCellValue(nTract560);
-						cellValue = rowData.createCell(12);
+						cellValue = rowData.createCell(20);
 						cellValue.setCellValue(vTract560);
 						
-						cellValue = rowData.createCell(13);
+						cellValue = rowData.createCell(23);
 						cellValue.setCellValue(nTract570);
-						cellValue = rowData.createCell(14);
+						cellValue = rowData.createCell(24);
 						cellValue.setCellValue(vTract570);
 						
-						cellValue = rowData.createCell(15);
+						cellValue = rowData.createCell(27);
 						cellValue.setCellValue(nTract580);
-						cellValue = rowData.createCell(16);
+						cellValue = rowData.createCell(28);
 						cellValue.setCellValue(vTract580);						
 						
-						cellValue = rowData.createCell(17);
+						cellValue = rowData.createCell(31);
 						cellValue.setCellValue(vTract5Stats.getStandardDeviation());
 						
 
@@ -855,42 +887,44 @@ public class TspPspProcessingTest {
 						int nPlota80 = prov.getHashPlotaN(clusterKey, year, "80").size();
 						double vPlota80  = prov.getHashPlotaV(clusterKey, year, "80").size()==0? 0: vstatsPlota80.getTotalV();
 						
-						VolumeStatistic vPlotaStats = prov.getStandarDeviation(clusterKey, year);
-						
+						//System.out.println("Calculating Standar Deviation of Plot A");
+						VolumeStatistic vPlotaStats = prov.getPlotaStandarDeviation(clusterKey, year);
+						//System.out.println("\tDONE");
+
 						//plot A
-						cellValue = rowData.createCell(18);
+						cellValue = rowData.createCell(5);//17->5
 						cellValue.setCellValue(nPlota20);
-						cellValue = rowData.createCell(19);
+						cellValue = rowData.createCell(6);
 						cellValue.setCellValue(vPlota20);
 						
-						cellValue = rowData.createCell(20);
+						cellValue = rowData.createCell(9);
 						cellValue.setCellValue(nPlota30);
-						cellValue = rowData.createCell(21);
+						cellValue = rowData.createCell(10);
 						cellValue.setCellValue(vPlota30);
 						
-						cellValue = rowData.createCell(22);
+						cellValue = rowData.createCell(13);
 						cellValue.setCellValue(nPlota40);
-						cellValue = rowData.createCell(23);
+						cellValue = rowData.createCell(14);
 						cellValue.setCellValue(vPlota40);
 						
-						cellValue = rowData.createCell(24);
+						cellValue = rowData.createCell(17);
 						cellValue.setCellValue(nPlota50);
-						cellValue = rowData.createCell(25);
+						cellValue = rowData.createCell(18);
 						cellValue.setCellValue(vPlota50);
 						
-						cellValue = rowData.createCell(26);
+						cellValue = rowData.createCell(21);
 						cellValue.setCellValue(nPlota60);
-						cellValue = rowData.createCell(27);
+						cellValue = rowData.createCell(22);
 						cellValue.setCellValue(vPlota60);
 						
-						cellValue = rowData.createCell(28);
+						cellValue = rowData.createCell(25);
 						cellValue.setCellValue(nPlota70);
-						cellValue = rowData.createCell(29);
+						cellValue = rowData.createCell(26);
 						cellValue.setCellValue(vPlota70);
 						
-						cellValue = rowData.createCell(30);
+						cellValue = rowData.createCell(29);
 						cellValue.setCellValue(nPlota80);
-						cellValue = rowData.createCell(31);
+						cellValue = rowData.createCell(30);
 						cellValue.setCellValue(vPlota80);						
 						
 						cellValue = rowData.createCell(32);
@@ -905,8 +939,10 @@ public class TspPspProcessingTest {
 				}
 			}
 		}
+		System.out.println("Writing to file " + uriOutput.getPath());
 		workbook.write(fileOutputStream);
-	}
+            }
+        }
 	
 	
 	//@Test
