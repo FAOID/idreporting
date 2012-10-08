@@ -331,13 +331,13 @@ public class TspPspProcessingTest {
         XSSFWorkbook workbook;
         CollectSurvey survey;
         int iStart = 0;
-        int iIncrement = 10;//500;
-        int iMax = 20;//5000;
+        int iIncrement = 1000;
+        int iMax = 5000;
         survey = surveyDao.load("idnfi");
         for(int iExcel=iStart; iExcel<iMax; iExcel+=iIncrement)
         {
             workbook = new XSSFWorkbook();		
-            uriOutput = new URI("/Users/ekowibowo/faoid/ReportNV-SE-"+iExcel+"-"+(iExcel+iIncrement-1)+".xlsx");
+            uriOutput = new URI("/Users/ekowibowo/Dropbox/swdev.bali@gmail.com/Dropbox/Target/ReportNV-SE-"+iExcel+"-"+(iExcel+iIncrement-1)+".xlsx");
             fileOutputStream = new FileOutputStream(uriOutput.getPath());
             XSSFSheet worksheet = workbook.createSheet("Report NV");
 	
@@ -820,7 +820,84 @@ public class TspPspProcessingTest {
 							cellValue = rowData.createCell(31);
 							cellValue.setCellValue(vTract5Stats.getStandardDeviation());
 							
-	
+							
+							//CHECK whether there is PSP value here.
+							if(prov.getHashClusterPlotaN().get(clusterKey)!=null)
+							{
+								System.out.println("PSP exist for " + clusterKey);
+								// Plot A
+								VolumeStatistic vstatsPlota20 = prov.getPlotaVolume(clusterKey, year, "20");
+								int nPlota20 = prov.getHashPlotaN(clusterKey, year, "20").size();
+								double vPlota20  = prov.getHashPlotaV(clusterKey, year, "20").size()==0? 0: vstatsPlota20.getTotalV();
+								
+								VolumeStatistic vstatsPlota30 = prov.getPlotaVolume(clusterKey, year, "30");
+								int nPlota30 = prov.getHashPlotaN(clusterKey, year, "30").size();
+								double vPlota30  = prov.getHashPlotaV(clusterKey, year, "30").size()==0? 0: vstatsPlota30.getTotalV();
+								
+								VolumeStatistic vstatsPlota40 = prov.getPlotaVolume(clusterKey, year, "40");
+								int nPlota40 = prov.getHashPlotaN(clusterKey, year, "40").size();
+								double vPlota40  = prov.getHashPlotaV(clusterKey, year, "40").size()==0? 0: vstatsPlota40.getTotalV();
+								
+								VolumeStatistic vstatsPlota50 = prov.getPlotaVolume(clusterKey, year, "50");
+								int nPlota50 = prov.getHashPlotaN(clusterKey, year, "50").size();
+								double vPlota50  = prov.getHashPlotaV(clusterKey, year, "50").size()==0? 0: vstatsPlota50.getTotalV();
+								
+								VolumeStatistic vstatsPlota60 = prov.getPlotaVolume(clusterKey, year, "60");
+								int nPlota60 = prov.getHashPlotaN(clusterKey, year, "60").size();
+								double vPlota60  = prov.getHashPlotaV(clusterKey, year, "60").size()==0? 0: vstatsPlota60.getTotalV();
+								
+								VolumeStatistic vstatsPlota70 = prov.getPlotaVolume(clusterKey, year, "70");
+								int nPlota70 = prov.getHashPlotaN(clusterKey, year, "70").size();
+								double vPlota70  = prov.getHashPlotaV(clusterKey, year, "70").size()==0? 0: vstatsPlota70.getTotalV();
+								
+								VolumeStatistic vstatsPlota80 = prov.getPlotaVolume(clusterKey, year, "80");
+								int nPlota80 = prov.getHashPlotaN(clusterKey, year, "80").size();
+								double vPlota80  = prov.getHashPlotaV(clusterKey, year, "80").size()==0? 0: vstatsPlota80.getTotalV();
+								
+								//System.out.println("Calculating Standar Deviation of Plot A");
+								VolumeStatistic vPlotaStats = prov.getPlotaStandarDeviation(clusterKey, year);
+								//System.out.println("\tDONE");
+		
+								//plot A
+								cellValue = rowData.createCell(5);//17->5
+								cellValue.setCellValue(nPlota20);
+								cellValue = rowData.createCell(6);
+								cellValue.setCellValue(vPlota20);
+								
+								cellValue = rowData.createCell(9);
+								cellValue.setCellValue(nPlota30);
+								cellValue = rowData.createCell(10);
+								cellValue.setCellValue(vPlota30);
+								
+								cellValue = rowData.createCell(13);
+								cellValue.setCellValue(nPlota40);
+								cellValue = rowData.createCell(14);
+								cellValue.setCellValue(vPlota40);
+								
+								cellValue = rowData.createCell(17);
+								cellValue.setCellValue(nPlota50);
+								cellValue = rowData.createCell(18);
+								cellValue.setCellValue(vPlota50);
+								
+								cellValue = rowData.createCell(21);
+								cellValue.setCellValue(nPlota60);
+								cellValue = rowData.createCell(22);
+								cellValue.setCellValue(vPlota60);
+								
+								cellValue = rowData.createCell(25);
+								cellValue.setCellValue(nPlota70);
+								cellValue = rowData.createCell(26);
+								cellValue.setCellValue(vPlota70);
+								
+								cellValue = rowData.createCell(29);
+								cellValue.setCellValue(nPlota80);
+								cellValue = rowData.createCell(30);
+								cellValue.setCellValue(vPlota80);						
+								
+								cellValue = rowData.createCell(32);
+								cellValue.setCellValue(vPlotaStats.getStandardDeviation());
+								prov.getHashClusterPlotaN().remove(clusterKey);
+							}
 							//prepare new row
 							iRow++;
 							rowData = worksheet.createRow(iRow);

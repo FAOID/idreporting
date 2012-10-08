@@ -40,8 +40,8 @@ public class ProvinceN {
 
 	
 	public void addPlotaV(String clusterKey, Integer year, String diameterRange, double d, double bole_height) {
-		//double newV = (0.25 * 3.14 * d * d * bole_height * 0.56) / 10000;
-		double newV = 0.25 * 3.14 * (d/100) * (d/100) * bole_height * 0.7;
+		double newV = (0.25 * 3.14 * d * d * bole_height * 0.56) / 10000;
+		//double newV = 0.25 * 3.14 * (d/100) * (d/100) * bole_height * 0.7;
 		ArrayList<Double> lv = null;
 		if ("20".equals(diameterRange)) {			
 			lv = getHashPlotaV(clusterKey, year, "20");
@@ -73,8 +73,8 @@ public class ProvinceN {
 	}
 	
 	public void addTract5V(String clusterKey, Integer year, String diameterRange, double d, double bole_height) {
-		//double newV = (0.25 * 3.14 * d * d * bole_height * 0.56) / 10000;
-		double newV = 0.25 * 3.14 * (d/100) * (d/100) * bole_height * 0.7;
+		double newV = (0.25 * 3.14 * d * d * bole_height * 0.56) / 10000;
+		//double newV = 0.25 * 3.14 * (d/100) * (d/100) * bole_height * 0.7;
 		ArrayList<Double> lv = null;
 		if ("20".equals(diameterRange)) {			
 			lv = getHashTract5V(clusterKey, year, "20");
