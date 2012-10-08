@@ -324,621 +324,607 @@ public class TspPspProcessingTest {
 	@Test
 	public void testReportingNvUsingCollectSTEP1() throws InvalidExpressionException, RecordPersistenceException, URISyntaxException, IOException
 	{	
-		
-            URI uriOutput;
-            FileOutputStream fileOutputStream; 
+	
+        URI uriOutput;
+        FileOutputStream fileOutputStream; 
 
-            XSSFWorkbook workbook;
-            CollectSurvey survey;
-            int iStart = 0;
-            int iIncrement = 500;
-            int iMax = 5000;
-            survey = surveyDao.load("idnfi");
-            for(int iExcel=iStart; iExcel<=iMax; iExcel+=iIncrement)
-            {
-                workbook = new XSSFWorkbook();		
-                uriOutput = new URI("/Users/ekowibowo/faoid/ReportNV-SE-"+iExcel+"-"+(iExcel+iIncrement-1)+".xlsx");
-                fileOutputStream = new FileOutputStream(uriOutput.getPath());
-                XSSFSheet worksheet = workbook.createSheet("Report NV");
-		
-                System.out.println("Creating file " + uriOutput.getPath());
+        XSSFWorkbook workbook;
+        CollectSurvey survey;
+        int iStart = 0;
+        int iIncrement = 10;//500;
+        int iMax = 20;//5000;
+        survey = surveyDao.load("idnfi");
+        for(int iExcel=iStart; iExcel<iMax; iExcel+=iIncrement)
+        {
+            workbook = new XSSFWorkbook();		
+            uriOutput = new URI("/Users/ekowibowo/faoid/ReportNV-SE-"+iExcel+"-"+(iExcel+iIncrement-1)+".xlsx");
+            fileOutputStream = new FileOutputStream(uriOutput.getPath());
+            XSSFSheet worksheet = workbook.createSheet("Report NV");
+	
+            System.out.println("Creating file " + uriOutput.getPath());
                 
-		String rootEntityName;
-		List<CollectRecord> records;
-		ModelPathExpression relativeExpression;
+			String rootEntityName;
+			List<CollectRecord> records;
+			ModelPathExpression relativeExpression;
 		
 		
-		HashMap<Integer, ProvinceN> hashProvince = new HashMap<Integer, ProvinceN>();
-		int i=0;	
-		hashProvince.put(1, new ProvinceN(1,"Daerah Istimewa Aceh"));
-		hashProvince.put(2, new ProvinceN(2,"Sumatera Utara"));
-		hashProvince.put(3, new ProvinceN(3,"Sumatera Barat"));
-		hashProvince.put(4, new ProvinceN(4,"Riau"));
-		hashProvince.put(5, new ProvinceN(5,"Jambi"));
-		hashProvince.put(6, new ProvinceN(6,"Sumatera Selatan"));
-		hashProvince.put(7, new ProvinceN(7,"Lampung"));
-		hashProvince.put(8, new ProvinceN(8,"Bengkulu"));
-		hashProvince.put(9, new ProvinceN(9,"Banten"));
-		hashProvince.put(10, new ProvinceN(10,"Jawa Barat"));
-		hashProvince.put(11, new ProvinceN(11,"Jawa Tengah"));
-		hashProvince.put(12, new ProvinceN(12,"DIY"));
-		hashProvince.put(13, new ProvinceN(13,"Jawa Timur"));
-		hashProvince.put(14, new ProvinceN(14,"Bali"));
-		hashProvince.put(15, new ProvinceN(15,"Nusa Tenggara Barat"));
-		hashProvince.put(16, new ProvinceN(16,"Nusa Tenggara Timur"));
-		hashProvince.put(17, new ProvinceN(17,"Timor Timur"));
-		hashProvince.put(18, new ProvinceN(18,"Kalimantan Barat"));
-		hashProvince.put(19, new ProvinceN(19,"Kalimantan Tengah"));
-		hashProvince.put(20, new ProvinceN(20,"Kalimantan Selatan"));
-		hashProvince.put(21, new ProvinceN(21,"Kalimantan Timur"));
-		hashProvince.put(22, new ProvinceN(22,"Sulawesi Utara"));
-		hashProvince.put(23, new ProvinceN(23,"Sulawesi Tengah"));
-		hashProvince.put(24, new ProvinceN(24,"Sulawesi Tenggara"));
-		hashProvince.put(25, new ProvinceN(25,"Sulawesi Selatan"));
-		hashProvince.put(26, new ProvinceN(26,"Maluku"));
-		hashProvince.put(27, new ProvinceN(27,"Irian Jaya"));
-		hashProvince.put(28, new ProvinceN(28,"Kepulauan Riau"));
-		hashProvince.put(29, new ProvinceN(29,"Bangka Belitung"));
-		hashProvince.put(30, new ProvinceN(30,"Gorontalo"));
-		hashProvince.put(31, new ProvinceN(31,"Sulawesi Barat"));
-		hashProvince.put(32, new ProvinceN(32,"Maluku Utara"));
-		hashProvince.put(33, new ProvinceN(33,"Irian Barat"));
+			HashMap<Integer, ProvinceN> hashProvince = new HashMap<Integer, ProvinceN>();
+			int i=0;	
+			hashProvince.put(1, new ProvinceN(1,"Daerah Istimewa Aceh"));
+			hashProvince.put(2, new ProvinceN(2,"Sumatera Utara"));
+			hashProvince.put(3, new ProvinceN(3,"Sumatera Barat"));
+			hashProvince.put(4, new ProvinceN(4,"Riau"));
+			hashProvince.put(5, new ProvinceN(5,"Jambi"));
+			hashProvince.put(6, new ProvinceN(6,"Sumatera Selatan"));
+			hashProvince.put(7, new ProvinceN(7,"Lampung"));
+			hashProvince.put(8, new ProvinceN(8,"Bengkulu"));
+			hashProvince.put(9, new ProvinceN(9,"Banten"));
+			hashProvince.put(10, new ProvinceN(10,"Jawa Barat"));
+			hashProvince.put(11, new ProvinceN(11,"Jawa Tengah"));
+			hashProvince.put(12, new ProvinceN(12,"DIY"));
+			hashProvince.put(13, new ProvinceN(13,"Jawa Timur"));
+			hashProvince.put(14, new ProvinceN(14,"Bali"));
+			hashProvince.put(15, new ProvinceN(15,"Nusa Tenggara Barat"));
+			hashProvince.put(16, new ProvinceN(16,"Nusa Tenggara Timur"));
+			hashProvince.put(17, new ProvinceN(17,"Timor Timur"));
+			hashProvince.put(18, new ProvinceN(18,"Kalimantan Barat"));
+			hashProvince.put(19, new ProvinceN(19,"Kalimantan Tengah"));
+			hashProvince.put(20, new ProvinceN(20,"Kalimantan Selatan"));
+			hashProvince.put(21, new ProvinceN(21,"Kalimantan Timur"));
+			hashProvince.put(22, new ProvinceN(22,"Sulawesi Utara"));
+			hashProvince.put(23, new ProvinceN(23,"Sulawesi Tengah"));
+			hashProvince.put(24, new ProvinceN(24,"Sulawesi Tenggara"));
+			hashProvince.put(25, new ProvinceN(25,"Sulawesi Selatan"));
+			hashProvince.put(26, new ProvinceN(26,"Maluku"));
+			hashProvince.put(27, new ProvinceN(27,"Irian Jaya"));
+			hashProvince.put(28, new ProvinceN(28,"Kepulauan Riau"));
+			hashProvince.put(29, new ProvinceN(29,"Bangka Belitung"));
+			hashProvince.put(30, new ProvinceN(30,"Gorontalo"));
+			hashProvince.put(31, new ProvinceN(31,"Sulawesi Barat"));
+			hashProvince.put(32, new ProvinceN(32,"Maluku Utara"));
+			hashProvince.put(33, new ProvinceN(33,"Irian Barat"));
+			
 		
-		
-		records = recordManager.loadSummaries(survey, "cluster", iExcel, (iExcel + iIncrement - 1), (List<RecordSummarySortField>) null, (String) null);
-		rootEntityName = "/cluster/permanent_plot_a/plota_enum";
-		
-		for (CollectRecord s : records) {
-			//clear data
+			records = recordManager.loadSummaries(survey, "cluster", iExcel, (iExcel + iIncrement - 1), (List<RecordSummarySortField>) null, (String) null);
 			
-			ExpressionFactory expressionFactory = s.getSurveyContext().getExpressionFactory();
-			AbsoluteModelPathExpression expression = expressionFactory.createAbsoluteModelPathExpression(rootEntityName);
-			CollectRecord record = recordManager.load(survey, s.getId(), 1);
-			List<Node<?>> rowNodes = null;
-			try {
-				rowNodes = expression.iterate(record);
-			}catch(MissingValueException ex)
-			{				
-			}
-			
-			if(rowNodes == null) continue;
-			
-			for(Node<?> n :rowNodes)
-			{	
-				String strD = extractValues(n, "dbb_or_b").get(0);
-				double d;
-				int provinceCode=-1;
-				
-				
-				if(!"".equals(strD))
-				{	
-					//utm zone
-					relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/utm_zone");
-					IntegerAttribute utmZoneAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-					Integer utmZone = utmZoneAttr.getValue().getValue();
-					
-					
-					//easting
-					relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/easting");
-					IntegerAttribute eastingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-					Integer easting = eastingAttr.getValue().getValue();
-					
-					
-					//northing
-					relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/northing");
-					IntegerAttribute northingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-					Integer northing = northingAttr.getValue().getValue();
-					
-					
-					String clusterKey = utmZone + "" + easting + "" + String.format("%04d", northing)  + "";
-					//System.out.println(utmZone + ":" + easting + ":" + String.format("%04d", northing)  + "");
-					
-					//year
-					relativeExpression = expressionFactory.createModelPathExpression("parent()/year");
-					IntegerAttribute yearAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-					Integer year = yearAttr.getValue().getValue();
-					
-					
-					//bole_height
-					relativeExpression = expressionFactory.createModelPathExpression("trees_higher_than_20cm/bole_height");
-					RealAttribute bole_heightAttr=null;
-					try {
-						bole_heightAttr = (RealAttribute) relativeExpression.evaluate(n, null);
-					}catch(MissingValueException ex)
-					{
-						
-					}
-					double bole_height = 0;
-					if(bole_heightAttr!=null)
-					{
-						RealValue x = bole_heightAttr.getValue();
-						if(x!=null) {
-							try {
-								bole_height = x.getValue();
-							}catch(NullPointerException ex)
-							{	
-							}
-						}
-					}
-					
-					relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
-					CodeAttribute code = null;
-					try {
-						code = (CodeAttribute ) relativeExpression.evaluate(n, null);
-						provinceCode = Integer.parseInt(code.getValue().getCode());
-					}catch(MissingValueException ex)
-					{
-						System.out.println("Province Error on Record = " + record.getId());
-                                                continue;
-					}
-					
-					
-					
-					d = Double.parseDouble(strD);
-					if(d>=20){
-						i++;
-						hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "20").add(d);
-						hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "20", d, bole_height);
-					}
-					if(d>=30){
-						hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "30").add(d);
-						hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "30", d, bole_height);
-					}
-					if(d>=40){
-						hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "40").add(d);
-						hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "40", d, bole_height);
-					}
-					if(d>=50){
-						hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "50").add(d);
-						hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "50", d, bole_height);
-					}
-					if(d>=60){
-						hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "60").add(d);
-						hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "60", d, bole_height);
-					}
-					if(d>=70){
-						hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "70").add(d);
-						hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "70", d, bole_height);
-					}
-					if(d>=80){
-						hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "80").add(d);
-						hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "80", d, bole_height);
-					}
-				}
-			}		
-		}
-		
-		//System.out.println("Processing tract5");
-		// TRACT 5
-		rootEntityName = "/cluster/natural_forest/tp";
-		//records = recordManager.loadSummaries(survey, "cluster", 0, Integer.MAX_VALUE, (List<RecordSummarySortField>) null, (String) null);
-		for (CollectRecord s : records) {
-			//clear data
-			
-			ExpressionFactory expressionFactory = s.getSurveyContext().getExpressionFactory();
-			AbsoluteModelPathExpression expression = expressionFactory.createAbsoluteModelPathExpression(rootEntityName);
-			CollectRecord record = recordManager.load(survey, s.getId(), 1);
-			List<Node<?>> rowNodes = null;
-			try {
-				rowNodes = expression.iterate(record);
-			}catch(MissingValueException ex)
-			{				
-			}
-			
-			if(rowNodes == null) continue;
-			
-			for(Node<?> n :rowNodes)
-			{	
-				//tract 5 only
-				relativeExpression = expressionFactory.createModelPathExpression("parent()/tract_no");
-				IntegerAttribute tract = (IntegerAttribute) relativeExpression.evaluate(n, null);
-				
-				if(tract.getValue().getValue()!=5){
-					continue;
+			// TRACT 5
+			rootEntityName = "/cluster/natural_forest/tp";
+			for (CollectRecord s : records) {
+				ExpressionFactory expressionFactory = s.getSurveyContext().getExpressionFactory();
+				AbsoluteModelPathExpression expression = expressionFactory.createAbsoluteModelPathExpression(rootEntityName);
+				CollectRecord record = recordManager.load(survey, s.getId(), 1);
+				List<Node<?>> rowNodes = null;
+				try {
+					rowNodes = expression.iterate(record);
+				}catch(MissingValueException ex)
+				{				
 				}
 				
-				//System.out.println("\tGetting diameter of Tract 5 tree");	
-				String strD = extractValues(n, "diameter").get(0);
-				double d;
-				int provinceCode=-1;
+				if(rowNodes == null) continue;
 				
-				
-				if(!"".equals(strD))
+				for(Node<?> n :rowNodes)
 				{	
-					//utm zone
-					relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/utm_zone");
-					IntegerAttribute utmZoneAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-					Integer utmZone = utmZoneAttr.getValue().getValue();
+					//tract 5 only
+					relativeExpression = expressionFactory.createModelPathExpression("parent()/tract_no");
+					IntegerAttribute tract = (IntegerAttribute) relativeExpression.evaluate(n, null);
 					
-					
-					//easting
-					relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/easting");
-					IntegerAttribute eastingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-					Integer easting = eastingAttr.getValue().getValue();
-					
-					
-					//northing
-					relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/northing");
-					IntegerAttribute northingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-					Integer northing = northingAttr.getValue().getValue();
-					
-					
-					String clusterKey = utmZone + "" + easting + "" + String.format("%04d", northing)  + "";
-					//System.out.println(utmZone + ":" + easting + ":" + String.format("%04d", northing)  + "");
-					
-					//year
-					relativeExpression = expressionFactory.createModelPathExpression("parent()/year");
-					IntegerAttribute yearAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
-					Integer year = yearAttr.getValue().getValue();
-					
-					
-					//bole_height
-					relativeExpression = expressionFactory.createModelPathExpression("lg_trees/bole_height");
-					RealAttribute bole_heightAttr=null;
-					try {
-						bole_heightAttr = (RealAttribute) relativeExpression.evaluate(n, null);
-					}catch(MissingValueException ex)
-					{
-						
-					}
-					double bole_height = 0;
-					if(bole_heightAttr!=null)
-					{
-						RealValue x = bole_heightAttr.getValue();
-						if(x!=null) {
-							try {
-								bole_height = x.getValue();
-							}catch(NullPointerException ex)
-							{	
-							}
-						}
-					}
-					
-					relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
-					CodeAttribute code = null;
-					try {
-						code = (CodeAttribute ) relativeExpression.evaluate(n, null);
-						provinceCode = Integer.parseInt(code.getValue().getCode());
-					}catch(MissingValueException ex)
-					{
-						System.out.println("Province Error on Record = " + record.getId());
+					if(tract.getValue().getValue()!=5){
 						continue;
 					}
 					
+					//System.out.println("\tGetting diameter of Tract 5 tree");	
+					String strD = extractValues(n, "diameter").get(0);
+					double d;
+					int provinceCode=-1;
 					
 					
-					d = Double.parseDouble(strD);
-					if(d>=20){
-						i++;
-						hashProvince.get(provinceCode).getTract5N(clusterKey, year, "20").add(d);
-						hashProvince.get(provinceCode).addTract5V(clusterKey, year, "20", d, bole_height);
+					if(!"".equals(strD))
+					{	
+						//utm zone
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/utm_zone");
+						IntegerAttribute utmZoneAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer utmZone = utmZoneAttr.getValue().getValue();
+						
+						
+						//easting
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/easting");
+						IntegerAttribute eastingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer easting = eastingAttr.getValue().getValue();
+						
+						
+						//northing
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/northing");
+						IntegerAttribute northingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer northing = northingAttr.getValue().getValue();
+						
+						
+						String clusterKey = utmZone + "" + easting + "" + String.format("%04d", northing)  + "";
+						//System.out.println(utmZone + ":" + easting + ":" + String.format("%04d", northing)  + "");
+						
+						//year
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/year");
+						IntegerAttribute yearAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer year = yearAttr.getValue().getValue();
+						
+						
+						//bole_height
+						relativeExpression = expressionFactory.createModelPathExpression("lg_trees/bole_height");
+						RealAttribute bole_heightAttr=null;
+						try {
+							bole_heightAttr = (RealAttribute) relativeExpression.evaluate(n, null);
+						}catch(MissingValueException ex)
+						{
+							
+						}
+						double bole_height = 0;
+						if(bole_heightAttr!=null)
+						{
+							RealValue x = bole_heightAttr.getValue();
+							if(x!=null) {
+								try {
+									bole_height = x.getValue();
+								}catch(NullPointerException ex)
+								{	
+								}
+							}
+						}
+						
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
+						CodeAttribute code = null;
+						try {
+							code = (CodeAttribute ) relativeExpression.evaluate(n, null);
+							provinceCode = Integer.parseInt(code.getValue().getCode());
+						}catch(MissingValueException ex)
+						{
+							System.out.println("Province Error on Record = " + record.getId());
+							continue;
+						}
+						
+						
+						
+						d = Double.parseDouble(strD);
+						if(d>=20){
+							i++;
+							hashProvince.get(provinceCode).getTract5N(clusterKey, year, "20").add(d);
+							hashProvince.get(provinceCode).addTract5V(clusterKey, year, "20", d, bole_height);
+						}
+						if(d>=30){
+							hashProvince.get(provinceCode).getTract5N(clusterKey, year, "30").add(d);
+							hashProvince.get(provinceCode).addTract5V(clusterKey, year, "30", d, bole_height);
+						}
+						if(d>=40){
+							hashProvince.get(provinceCode).getTract5N(clusterKey, year, "40").add(d);
+							hashProvince.get(provinceCode).addTract5V(clusterKey, year, "40", d, bole_height);
+						}
+						if(d>=50){
+							hashProvince.get(provinceCode).getTract5N(clusterKey, year, "50").add(d);
+							hashProvince.get(provinceCode).addTract5V(clusterKey, year, "50", d, bole_height);
+						}
+						if(d>=60){
+							hashProvince.get(provinceCode).getTract5N(clusterKey, year, "60").add(d);
+							hashProvince.get(provinceCode).addTract5V(clusterKey, year, "60", d, bole_height);
+						}
+						if(d>=70){
+							hashProvince.get(provinceCode).getTract5N(clusterKey, year, "70").add(d);
+							hashProvince.get(provinceCode).addTract5V(clusterKey, year, "70", d, bole_height);
+						}
+						if(d>=80){
+							hashProvince.get(provinceCode).getTract5N(clusterKey, year, "80").add(d);
+							hashProvince.get(provinceCode).addTract5V(clusterKey, year, "80", d, bole_height);
+						}
 					}
-					if(d>=30){
-						hashProvince.get(provinceCode).getTract5N(clusterKey, year, "30").add(d);
-						hashProvince.get(provinceCode).addTract5V(clusterKey, year, "30", d, bole_height);
-					}
-					if(d>=40){
-						hashProvince.get(provinceCode).getTract5N(clusterKey, year, "40").add(d);
-						hashProvince.get(provinceCode).addTract5V(clusterKey, year, "40", d, bole_height);
-					}
-					if(d>=50){
-						hashProvince.get(provinceCode).getTract5N(clusterKey, year, "50").add(d);
-						hashProvince.get(provinceCode).addTract5V(clusterKey, year, "50", d, bole_height);
-					}
-					if(d>=60){
-						hashProvince.get(provinceCode).getTract5N(clusterKey, year, "60").add(d);
-						hashProvince.get(provinceCode).addTract5V(clusterKey, year, "60", d, bole_height);
-					}
-					if(d>=70){
-						hashProvince.get(provinceCode).getTract5N(clusterKey, year, "70").add(d);
-						hashProvince.get(provinceCode).addTract5V(clusterKey, year, "70", d, bole_height);
-					}
-					if(d>=80){
-						hashProvince.get(provinceCode).getTract5N(clusterKey, year, "80").add(d);
-						hashProvince.get(provinceCode).addTract5V(clusterKey, year, "80", d, bole_height);
-					}
-				}
-			}		
-		}
-		
-		
-		
-		//System.out.println("i =" + i);
-		//System.out.println("Provinsi;Cluster;Tahun;N20;V20;N30;V30;N40;V40;N50;V50;N60;V60;N70;V70;N80;V80");
-		XSSFRow rowHeader;
-		XSSFCell cellHeader;
-		
-		rowHeader = worksheet.createRow(0);
-		cellHeader = rowHeader.createCell(0);
-		cellHeader.setCellValue("Provinsi");
-		cellHeader = rowHeader.createCell(1);
-		cellHeader.setCellValue("Klaster");
-		cellHeader = rowHeader.createCell(2);
-		cellHeader.setCellValue("Tahun");		
-		
-		//enumerasi/tract5
-		cellHeader = rowHeader.createCell(3);
-		cellHeader.setCellValue("TSP N20");
-		cellHeader = rowHeader.createCell(4);
-		cellHeader.setCellValue("TSP V20");
-                cellHeader = rowHeader.createCell(5);//18=>5
-		cellHeader.setCellValue("PSP N20");
-		cellHeader = rowHeader.createCell(6);//19=>6
-		cellHeader.setCellValue("PSP V20");
-
-                cellHeader = rowHeader.createCell(7);//5=?7
-		cellHeader.setCellValue("TSP N30");
-		cellHeader = rowHeader.createCell(8);
-		cellHeader.setCellValue("TSP V30");
-                cellHeader = rowHeader.createCell(9);
-		cellHeader.setCellValue("PSP N30");
-		cellHeader = rowHeader.createCell(10);
-		cellHeader.setCellValue("PSP V30");
-
-		cellHeader = rowHeader.createCell(11);
-		cellHeader.setCellValue("TSP N40");
-		cellHeader = rowHeader.createCell(12);
-		cellHeader.setCellValue("TSP V40");
-                cellHeader = rowHeader.createCell(13);
-		cellHeader.setCellValue("PSP N40");
-		cellHeader = rowHeader.createCell(14);
-		cellHeader.setCellValue("PSP V40");
-
-		cellHeader = rowHeader.createCell(15);
-		cellHeader.setCellValue("TSP N50");
-		cellHeader = rowHeader.createCell(16);
-		cellHeader.setCellValue("TSP V50");
-                cellHeader = rowHeader.createCell(17);
-		cellHeader.setCellValue("PSP N50");
-		cellHeader = rowHeader.createCell(18);
-		cellHeader.setCellValue("PSP V50");
-	
-
-		cellHeader = rowHeader.createCell(19);
-		cellHeader.setCellValue("TSP N60");
-		cellHeader = rowHeader.createCell(20);
-		cellHeader.setCellValue("TSP V60");
-                cellHeader = rowHeader.createCell(21);
-                cellHeader.setCellValue("PSP N60");
-		cellHeader = rowHeader.createCell(22);
-		cellHeader.setCellValue("PSP V60");
-
-		cellHeader = rowHeader.createCell(23);
-		cellHeader.setCellValue("TSP N70");
-		cellHeader = rowHeader.createCell(24);
-		cellHeader.setCellValue("TSP V70");
-                cellHeader = rowHeader.createCell(25);
-		cellHeader.setCellValue("PSP N70");
-		cellHeader = rowHeader.createCell(26);
-		cellHeader.setCellValue("PSP V70");
-
-		cellHeader = rowHeader.createCell(27);
-		cellHeader.setCellValue("TSP N80");
-		cellHeader = rowHeader.createCell(28);
-		cellHeader.setCellValue("TSP V80");
-                cellHeader = rowHeader.createCell(29);
-		cellHeader.setCellValue("PSP N80");
-		cellHeader = rowHeader.createCell(30);
-		cellHeader.setCellValue("PSP V80");
-
-		cellHeader = rowHeader.createCell(31);
-		cellHeader.setCellValue("Standar Deviasi TSP");
-                cellHeader = rowHeader.createCell(32);
-		cellHeader.setCellValue("Standar Deviasi PSP");
-		
-	
-		
-		
-	
-		
-	
-	
-		
-		int iRow = 1; 
-		XSSFRow rowData = null;
-		XSSFCell cellValue = null;
-		for(int p : hashProvince.keySet())
-		{
-			ProvinceN prov = hashProvince.get(p);
-			if(prov.getHashClusterPlotaN().keySet().size()>0) 
-			{
-				System.out.print(prov.getTitle());
-				rowData = worksheet.createRow(iRow);
-				cellValue = rowData.createCell(0);
-				cellValue.setCellValue(prov.getTitle());
+				}		
 			}
-
-			// Enumerasi/Tract5
-			for(String clusterKey : prov.getHashClusterTract5N().keySet())//province
-			{				
-				if(prov.getHashClusterTract5N().get(clusterKey).size()>0)//cluster
-				{					
-					for(Integer year : prov.getHashClusterTract5N().get(clusterKey).get(20).keySet())
-					{
-						cellValue = rowData.createCell(1);
-						cellValue.setCellValue(clusterKey);
-						
-						cellValue = rowData.createCell(2);
-						cellValue.setCellValue(year);
-						
-						
-						VolumeStatistic vstatsTract520 = prov.getVolume(clusterKey, year, "20");
-						int nTract520 = prov.getHashTract5N(clusterKey, year, "20").size();
-						double vTract520  = prov.getHashTract5V(clusterKey, year, "20").size()==0? 0: vstatsTract520.getTotalV();
-						
-						VolumeStatistic vstatsTract530 = prov.getVolume(clusterKey, year, "30");
-						int nTract530 = prov.getHashTract5N(clusterKey, year, "30").size();
-						double vTract530  = prov.getHashTract5V(clusterKey, year, "30").size()==0? 0: vstatsTract530.getTotalV();
-						
-						VolumeStatistic vstatsTract540 = prov.getVolume(clusterKey, year, "40");
-						int nTract540 = prov.getHashTract5N(clusterKey, year, "40").size();
-						double vTract540  = prov.getHashTract5V(clusterKey, year, "40").size()==0? 0: vstatsTract540.getTotalV();
-						
-						VolumeStatistic vstatsTract550 = prov.getVolume(clusterKey, year, "50");
-						int nTract550 = prov.getHashTract5N(clusterKey, year, "50").size();
-						double vTract550  = prov.getHashTract5V(clusterKey, year, "50").size()==0? 0: vstatsTract550.getTotalV();
-						
-						VolumeStatistic vstatsTract560 = prov.getVolume(clusterKey, year, "60");
-						int nTract560 = prov.getHashTract5N(clusterKey, year, "60").size();
-						double vTract560  = prov.getHashTract5V(clusterKey, year, "60").size()==0? 0: vstatsTract560.getTotalV();
-						
-						VolumeStatistic vstatsTract570 = prov.getVolume(clusterKey, year, "70");
-						int nTract570 = prov.getHashTract5N(clusterKey, year, "70").size();
-						double vTract570  = prov.getHashTract5V(clusterKey, year, "70").size()==0? 0: vstatsTract570.getTotalV();
-						
-						VolumeStatistic vstatsTract580 = prov.getVolume(clusterKey, year, "80");
-						int nTract580 = prov.getHashTract5N(clusterKey, year, "80").size();
-						double vTract580  = prov.getHashTract5V(clusterKey, year, "80").size()==0? 0: vstatsTract580.getTotalV();
-						
-						//System.out.println("\tCalculating Standar Deviation of Tract5..");
-						VolumeStatistic vTract5Stats = prov.getTract5StandarDeviation(clusterKey, year);
-						//System.out.println("\tDONE");
-						
-						//enumerasi/tract 5
-						cellValue = rowData.createCell(3);
-						cellValue.setCellValue(nTract520);
-						cellValue = rowData.createCell(4);
-						cellValue.setCellValue(vTract520);
-						
-						cellValue = rowData.createCell(7);
-						cellValue.setCellValue(nTract530);
-						cellValue = rowData.createCell(8);
-						cellValue.setCellValue(vTract530);
-						
-						cellValue = rowData.createCell(11);
-						cellValue.setCellValue(nTract540);
-						cellValue = rowData.createCell(12);
-						cellValue.setCellValue(vTract540);
-						
-						cellValue = rowData.createCell(15);
-						cellValue.setCellValue(nTract550);
-						cellValue = rowData.createCell(16);
-						cellValue.setCellValue(vTract550);
-						
-						cellValue = rowData.createCell(19);
-						cellValue.setCellValue(nTract560);
-						cellValue = rowData.createCell(20);
-						cellValue.setCellValue(vTract560);
-						
-						cellValue = rowData.createCell(23);
-						cellValue.setCellValue(nTract570);
-						cellValue = rowData.createCell(24);
-						cellValue.setCellValue(vTract570);
-						
-						cellValue = rowData.createCell(27);
-						cellValue.setCellValue(nTract580);
-						cellValue = rowData.createCell(28);
-						cellValue.setCellValue(vTract580);						
-						
-						cellValue = rowData.createCell(31);
-						cellValue.setCellValue(vTract5Stats.getStandardDeviation());
-						
-
-						//prepare new row
-						iRow++;
-						rowData = worksheet.createRow(iRow);
-						cellValue = rowData.createCell(0);
-						cellValue.setCellValue(prov.getTitle());
-					}
+			
+			rootEntityName = "/cluster/permanent_plot_a/plota_enum";
+			for (CollectRecord s : records) {
+				//clear data
+				
+				ExpressionFactory expressionFactory = s.getSurveyContext().getExpressionFactory();
+				AbsoluteModelPathExpression expression = expressionFactory.createAbsoluteModelPathExpression(rootEntityName);
+				CollectRecord record = recordManager.load(survey, s.getId(), 1);
+				List<Node<?>> rowNodes = null;
+				try {
+					rowNodes = expression.iterate(record);
+				}catch(MissingValueException ex)
+				{				
 				}
+				
+				if(rowNodes == null) continue;
+				
+				for(Node<?> n :rowNodes)
+				{	
+					String strD = extractValues(n, "dbb_or_b").get(0);
+					double d;
+					int provinceCode=-1;
+					
+					
+					if(!"".equals(strD))
+					{	
+						//utm zone
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/utm_zone");
+						IntegerAttribute utmZoneAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer utmZone = utmZoneAttr.getValue().getValue();
+						
+						
+						//easting
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/easting");
+						IntegerAttribute eastingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer easting = eastingAttr.getValue().getValue();
+						
+						
+						//northing
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/parent()/northing");
+						IntegerAttribute northingAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer northing = northingAttr.getValue().getValue();
+						
+						
+						String clusterKey = utmZone + "" + easting + "" + String.format("%04d", northing)  + "";
+						//System.out.println(utmZone + ":" + easting + ":" + String.format("%04d", northing)  + "");
+						
+						//year
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/year");
+						IntegerAttribute yearAttr = (IntegerAttribute) relativeExpression.evaluate(n, null);
+						Integer year = yearAttr.getValue().getValue();
+						
+						
+						//bole_height
+						relativeExpression = expressionFactory.createModelPathExpression("trees_higher_than_20cm/bole_height");
+						RealAttribute bole_heightAttr=null;
+						try {
+							bole_heightAttr = (RealAttribute) relativeExpression.evaluate(n, null);
+						}catch(MissingValueException ex)
+						{
+							
+						}
+						double bole_height = 0;
+						if(bole_heightAttr!=null)
+						{
+							RealValue x = bole_heightAttr.getValue();
+							if(x!=null) {
+								try {
+									bole_height = x.getValue();
+								}catch(NullPointerException ex)
+								{	
+								}
+							}
+						}
+						
+						relativeExpression = expressionFactory.createModelPathExpression("parent()/province");
+						CodeAttribute code = null;
+						try {
+							code = (CodeAttribute ) relativeExpression.evaluate(n, null);
+							provinceCode = Integer.parseInt(code.getValue().getCode());
+						}catch(MissingValueException ex)
+						{
+							System.out.println("Province Error on Record = " + record.getId());
+	                        continue;
+						}
+						
+						
+						
+						d = Double.parseDouble(strD);
+						if(d>=20){
+							i++;
+							hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "20").add(d);
+							hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "20", d, bole_height);
+						}
+						if(d>=30){
+							hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "30").add(d);
+							hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "30", d, bole_height);
+						}
+						if(d>=40){
+							hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "40").add(d);
+							hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "40", d, bole_height);
+						}
+						if(d>=50){
+							hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "50").add(d);
+							hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "50", d, bole_height);
+						}
+						if(d>=60){
+							hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "60").add(d);
+							hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "60", d, bole_height);
+						}
+						if(d>=70){
+							hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "70").add(d);
+							hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "70", d, bole_height);
+						}
+						if(d>=80){
+							hashProvince.get(provinceCode).getPlotaN(clusterKey, year, "80").add(d);
+							hashProvince.get(provinceCode).addPlotaV(clusterKey, year, "80", d, bole_height);
+						}
+					}
+				}		
 			}
 		
 			
-			// Plot A
-			for(String clusterKey : prov.getHashClusterPlotaN().keySet())//province
-			{				
-				if(prov.getHashClusterPlotaN().get(clusterKey).size()>0)//cluster
-				{					
-					for(Integer year : prov.getHashClusterPlotaN().get(clusterKey).get(20).keySet())
-					{
-						cellValue = rowData.createCell(1);
-						cellValue.setCellValue(clusterKey);
-						
-						cellValue = rowData.createCell(2);
-						cellValue.setCellValue(year);
-						
-						
-						// Plot A
-						VolumeStatistic vstatsPlota20 = prov.getVolume(clusterKey, year, "20");
-						int nPlota20 = prov.getHashPlotaN(clusterKey, year, "20").size();
-						double vPlota20  = prov.getHashPlotaV(clusterKey, year, "20").size()==0? 0: vstatsPlota20.getTotalV();
-						
-						VolumeStatistic vstatsPlota30 = prov.getVolume(clusterKey, year, "30");
-						int nPlota30 = prov.getHashPlotaN(clusterKey, year, "30").size();
-						double vPlota30  = prov.getHashPlotaV(clusterKey, year, "30").size()==0? 0: vstatsPlota30.getTotalV();
-						
-						VolumeStatistic vstatsPlota40 = prov.getVolume(clusterKey, year, "40");
-						int nPlota40 = prov.getHashPlotaN(clusterKey, year, "40").size();
-						double vPlota40  = prov.getHashPlotaV(clusterKey, year, "40").size()==0? 0: vstatsPlota40.getTotalV();
-						
-						VolumeStatistic vstatsPlota50 = prov.getVolume(clusterKey, year, "50");
-						int nPlota50 = prov.getHashPlotaN(clusterKey, year, "50").size();
-						double vPlota50  = prov.getHashPlotaV(clusterKey, year, "50").size()==0? 0: vstatsPlota50.getTotalV();
-						
-						VolumeStatistic vstatsPlota60 = prov.getVolume(clusterKey, year, "60");
-						int nPlota60 = prov.getHashPlotaN(clusterKey, year, "60").size();
-						double vPlota60  = prov.getHashPlotaV(clusterKey, year, "60").size()==0? 0: vstatsPlota60.getTotalV();
-						
-						VolumeStatistic vstatsPlota70 = prov.getVolume(clusterKey, year, "70");
-						int nPlota70 = prov.getHashPlotaN(clusterKey, year, "70").size();
-						double vPlota70  = prov.getHashPlotaV(clusterKey, year, "70").size()==0? 0: vstatsPlota70.getTotalV();
-						
-						VolumeStatistic vstatsPlota80 = prov.getVolume(clusterKey, year, "80");
-						int nPlota80 = prov.getHashPlotaN(clusterKey, year, "80").size();
-						double vPlota80  = prov.getHashPlotaV(clusterKey, year, "80").size()==0? 0: vstatsPlota80.getTotalV();
-						
-						//System.out.println("Calculating Standar Deviation of Plot A");
-						VolumeStatistic vPlotaStats = prov.getPlotaStandarDeviation(clusterKey, year);
-						//System.out.println("\tDONE");
-
-						//plot A
-						cellValue = rowData.createCell(5);//17->5
-						cellValue.setCellValue(nPlota20);
-						cellValue = rowData.createCell(6);
-						cellValue.setCellValue(vPlota20);
-						
-						cellValue = rowData.createCell(9);
-						cellValue.setCellValue(nPlota30);
-						cellValue = rowData.createCell(10);
-						cellValue.setCellValue(vPlota30);
-						
-						cellValue = rowData.createCell(13);
-						cellValue.setCellValue(nPlota40);
-						cellValue = rowData.createCell(14);
-						cellValue.setCellValue(vPlota40);
-						
-						cellValue = rowData.createCell(17);
-						cellValue.setCellValue(nPlota50);
-						cellValue = rowData.createCell(18);
-						cellValue.setCellValue(vPlota50);
-						
-						cellValue = rowData.createCell(21);
-						cellValue.setCellValue(nPlota60);
-						cellValue = rowData.createCell(22);
-						cellValue.setCellValue(vPlota60);
-						
-						cellValue = rowData.createCell(25);
-						cellValue.setCellValue(nPlota70);
-						cellValue = rowData.createCell(26);
-						cellValue.setCellValue(vPlota70);
-						
-						cellValue = rowData.createCell(29);
-						cellValue.setCellValue(nPlota80);
-						cellValue = rowData.createCell(30);
-						cellValue.setCellValue(vPlota80);						
-						
-						cellValue = rowData.createCell(32);
-						cellValue.setCellValue(vPlotaStats.getStandardDeviation());
-						
-						//prepare new row
-						iRow++;
-						rowData = worksheet.createRow(iRow);
-						cellValue = rowData.createCell(0);
-						cellValue.setCellValue(prov.getTitle());
+			//System.out.println("i =" + i);
+			//System.out.println("Provinsi;Cluster;Tahun;N20;V20;N30;V30;N40;V40;N50;V50;N60;V60;N70;V70;N80;V80");
+			XSSFRow rowHeader;
+			XSSFCell cellHeader;
+			
+			rowHeader = worksheet.createRow(0);
+			cellHeader = rowHeader.createCell(0);
+			cellHeader.setCellValue("Provinsi");
+			cellHeader = rowHeader.createCell(1);
+			cellHeader.setCellValue("Klaster");
+			cellHeader = rowHeader.createCell(2);
+			cellHeader.setCellValue("Tahun");		
+			
+			//enumerasi/tract5
+			cellHeader = rowHeader.createCell(3);
+			cellHeader.setCellValue("TSP N20");
+			cellHeader = rowHeader.createCell(4);
+			cellHeader.setCellValue("TSP V20");
+	        cellHeader = rowHeader.createCell(5);//18=>5
+			cellHeader.setCellValue("PSP N20");
+			cellHeader = rowHeader.createCell(6);//19=>6
+			cellHeader.setCellValue("PSP V20");
+	
+	        cellHeader = rowHeader.createCell(7);//5=?7
+			cellHeader.setCellValue("TSP N30");
+			cellHeader = rowHeader.createCell(8);
+			cellHeader.setCellValue("TSP V30");
+	        cellHeader = rowHeader.createCell(9);
+			cellHeader.setCellValue("PSP N30");
+			cellHeader = rowHeader.createCell(10);
+			cellHeader.setCellValue("PSP V30");
+	
+			cellHeader = rowHeader.createCell(11);
+			cellHeader.setCellValue("TSP N40");
+			cellHeader = rowHeader.createCell(12);
+			cellHeader.setCellValue("TSP V40");
+	        cellHeader = rowHeader.createCell(13);
+			cellHeader.setCellValue("PSP N40");
+			cellHeader = rowHeader.createCell(14);
+			cellHeader.setCellValue("PSP V40");
+	
+			cellHeader = rowHeader.createCell(15);
+			cellHeader.setCellValue("TSP N50");
+			cellHeader = rowHeader.createCell(16);
+			cellHeader.setCellValue("TSP V50");
+	        cellHeader = rowHeader.createCell(17);
+			cellHeader.setCellValue("PSP N50");
+			cellHeader = rowHeader.createCell(18);
+			cellHeader.setCellValue("PSP V50");
+		
+	
+			cellHeader = rowHeader.createCell(19);
+			cellHeader.setCellValue("TSP N60");
+			cellHeader = rowHeader.createCell(20);
+			cellHeader.setCellValue("TSP V60");
+	        cellHeader = rowHeader.createCell(21);
+	        cellHeader.setCellValue("PSP N60");
+			cellHeader = rowHeader.createCell(22);
+			cellHeader.setCellValue("PSP V60");
+	
+			cellHeader = rowHeader.createCell(23);
+			cellHeader.setCellValue("TSP N70");
+			cellHeader = rowHeader.createCell(24);
+			cellHeader.setCellValue("TSP V70");
+	        cellHeader = rowHeader.createCell(25);
+			cellHeader.setCellValue("PSP N70");
+			cellHeader = rowHeader.createCell(26);
+			cellHeader.setCellValue("PSP V70");
+	
+			cellHeader = rowHeader.createCell(27);
+			cellHeader.setCellValue("TSP N80");
+			cellHeader = rowHeader.createCell(28);
+			cellHeader.setCellValue("TSP V80");
+	        cellHeader = rowHeader.createCell(29);
+			cellHeader.setCellValue("PSP N80");
+			cellHeader = rowHeader.createCell(30);
+			cellHeader.setCellValue("PSP V80");
+	
+			cellHeader = rowHeader.createCell(31);
+			cellHeader.setCellValue("Standar Deviasi TSP");
+	        cellHeader = rowHeader.createCell(32);
+			cellHeader.setCellValue("Standar Deviasi PSP");
+	
+		
+			int iRow = 1; 
+			XSSFRow rowData = null;
+			XSSFCell cellValue = null;
+			for(int p : hashProvince.keySet())
+			{
+				ProvinceN prov = hashProvince.get(p);
+				if(prov.getHashClusterPlotaN().keySet().size()>0) 
+				{
+					rowData = worksheet.createRow(iRow);
+					cellValue = rowData.createCell(0);
+					cellValue.setCellValue(prov.getTitle());
+				}
+	
+				// Enumerasi/Tract5
+				for(String clusterKey : prov.getHashClusterTract5N().keySet())//province
+				{				
+					if(prov.getHashClusterTract5N().get(clusterKey).size()>0)//cluster
+					{					
+						for(Integer year : prov.getHashClusterTract5N().get(clusterKey).get(20).keySet())
+						{
+							cellValue = rowData.createCell(1);
+							cellValue.setCellValue(clusterKey);
+							
+							cellValue = rowData.createCell(2);
+							cellValue.setCellValue(year);
+							
+							
+							VolumeStatistic vstatsTract520 = prov.getTract5Volume(clusterKey, year, "20");
+							int nTract520 = prov.getHashTract5N(clusterKey, year, "20").size();
+							double vTract520  = prov.getHashTract5V(clusterKey, year, "20").size()==0? 0: vstatsTract520.getTotalV();
+							
+							VolumeStatistic vstatsTract530 = prov.getTract5Volume(clusterKey, year, "30");
+							int nTract530 = prov.getHashTract5N(clusterKey, year, "30").size();
+							double vTract530  = prov.getHashTract5V(clusterKey, year, "30").size()==0? 0: vstatsTract530.getTotalV();
+							
+							VolumeStatistic vstatsTract540 = prov.getTract5Volume(clusterKey, year, "40");
+							int nTract540 = prov.getHashTract5N(clusterKey, year, "40").size();
+							double vTract540  = prov.getHashTract5V(clusterKey, year, "40").size()==0? 0: vstatsTract540.getTotalV();
+							
+							VolumeStatistic vstatsTract550 = prov.getTract5Volume(clusterKey, year, "50");
+							int nTract550 = prov.getHashTract5N(clusterKey, year, "50").size();
+							double vTract550  = prov.getHashTract5V(clusterKey, year, "50").size()==0? 0: vstatsTract550.getTotalV();
+							
+							VolumeStatistic vstatsTract560 = prov.getTract5Volume(clusterKey, year, "60");
+							int nTract560 = prov.getHashTract5N(clusterKey, year, "60").size();
+							double vTract560  = prov.getHashTract5V(clusterKey, year, "60").size()==0? 0: vstatsTract560.getTotalV();
+							
+							VolumeStatistic vstatsTract570 = prov.getTract5Volume(clusterKey, year, "70");
+							int nTract570 = prov.getHashTract5N(clusterKey, year, "70").size();
+							double vTract570  = prov.getHashTract5V(clusterKey, year, "70").size()==0? 0: vstatsTract570.getTotalV();
+							
+							VolumeStatistic vstatsTract580 = prov.getTract5Volume(clusterKey, year, "80");
+							int nTract580 = prov.getHashTract5N(clusterKey, year, "80").size();
+							double vTract580  = prov.getHashTract5V(clusterKey, year, "80").size()==0? 0: vstatsTract580.getTotalV();
+							
+							//System.out.println("\tCalculating Standar Deviation of Tract5..");
+							VolumeStatistic vTract5Stats = prov.getTract5StandarDeviation(clusterKey, year);
+							//System.out.println("\tDONE");
+							
+							//enumerasi/tract 5
+							cellValue = rowData.createCell(3);
+							cellValue.setCellValue(nTract520);
+							cellValue = rowData.createCell(4);
+							cellValue.setCellValue(vTract520);
+							
+							cellValue = rowData.createCell(7);
+							cellValue.setCellValue(nTract530);
+							cellValue = rowData.createCell(8);
+							cellValue.setCellValue(vTract530);
+							
+							cellValue = rowData.createCell(11);
+							cellValue.setCellValue(nTract540);
+							cellValue = rowData.createCell(12);
+							cellValue.setCellValue(vTract540);
+							
+							cellValue = rowData.createCell(15);
+							cellValue.setCellValue(nTract550);
+							cellValue = rowData.createCell(16);
+							cellValue.setCellValue(vTract550);
+							
+							cellValue = rowData.createCell(19);
+							cellValue.setCellValue(nTract560);
+							cellValue = rowData.createCell(20);
+							cellValue.setCellValue(vTract560);
+							
+							cellValue = rowData.createCell(23);
+							cellValue.setCellValue(nTract570);
+							cellValue = rowData.createCell(24);
+							cellValue.setCellValue(vTract570);
+							
+							cellValue = rowData.createCell(27);
+							cellValue.setCellValue(nTract580);
+							cellValue = rowData.createCell(28);
+							cellValue.setCellValue(vTract580);						
+							
+							cellValue = rowData.createCell(31);
+							cellValue.setCellValue(vTract5Stats.getStandardDeviation());
+							
+	
+							//prepare new row
+							iRow++;
+							rowData = worksheet.createRow(iRow);
+							cellValue = rowData.createCell(0);
+							cellValue.setCellValue(prov.getTitle());
+						}
+					}
+				}
+				
+				// Plot A
+				for(String clusterKey : prov.getHashClusterPlotaN().keySet())//province
+				{				
+					if(prov.getHashClusterPlotaN().get(clusterKey).size()>0)//cluster
+					{					
+						for(Integer year : prov.getHashClusterPlotaN().get(clusterKey).get(20).keySet())
+						{
+							cellValue = rowData.createCell(1);
+							cellValue.setCellValue(clusterKey);
+							
+							cellValue = rowData.createCell(2);
+							cellValue.setCellValue(year);
+							
+							
+							// Plot A
+							VolumeStatistic vstatsPlota20 = prov.getPlotaVolume(clusterKey, year, "20");
+							int nPlota20 = prov.getHashPlotaN(clusterKey, year, "20").size();
+							double vPlota20  = prov.getHashPlotaV(clusterKey, year, "20").size()==0? 0: vstatsPlota20.getTotalV();
+							
+							VolumeStatistic vstatsPlota30 = prov.getPlotaVolume(clusterKey, year, "30");
+							int nPlota30 = prov.getHashPlotaN(clusterKey, year, "30").size();
+							double vPlota30  = prov.getHashPlotaV(clusterKey, year, "30").size()==0? 0: vstatsPlota30.getTotalV();
+							
+							VolumeStatistic vstatsPlota40 = prov.getPlotaVolume(clusterKey, year, "40");
+							int nPlota40 = prov.getHashPlotaN(clusterKey, year, "40").size();
+							double vPlota40  = prov.getHashPlotaV(clusterKey, year, "40").size()==0? 0: vstatsPlota40.getTotalV();
+							
+							VolumeStatistic vstatsPlota50 = prov.getPlotaVolume(clusterKey, year, "50");
+							int nPlota50 = prov.getHashPlotaN(clusterKey, year, "50").size();
+							double vPlota50  = prov.getHashPlotaV(clusterKey, year, "50").size()==0? 0: vstatsPlota50.getTotalV();
+							
+							VolumeStatistic vstatsPlota60 = prov.getPlotaVolume(clusterKey, year, "60");
+							int nPlota60 = prov.getHashPlotaN(clusterKey, year, "60").size();
+							double vPlota60  = prov.getHashPlotaV(clusterKey, year, "60").size()==0? 0: vstatsPlota60.getTotalV();
+							
+							VolumeStatistic vstatsPlota70 = prov.getPlotaVolume(clusterKey, year, "70");
+							int nPlota70 = prov.getHashPlotaN(clusterKey, year, "70").size();
+							double vPlota70  = prov.getHashPlotaV(clusterKey, year, "70").size()==0? 0: vstatsPlota70.getTotalV();
+							
+							VolumeStatistic vstatsPlota80 = prov.getPlotaVolume(clusterKey, year, "80");
+							int nPlota80 = prov.getHashPlotaN(clusterKey, year, "80").size();
+							double vPlota80  = prov.getHashPlotaV(clusterKey, year, "80").size()==0? 0: vstatsPlota80.getTotalV();
+							
+							//System.out.println("Calculating Standar Deviation of Plot A");
+							VolumeStatistic vPlotaStats = prov.getPlotaStandarDeviation(clusterKey, year);
+							//System.out.println("\tDONE");
+	
+							//plot A
+							cellValue = rowData.createCell(5);//17->5
+							cellValue.setCellValue(nPlota20);
+							cellValue = rowData.createCell(6);
+							cellValue.setCellValue(vPlota20);
+							
+							cellValue = rowData.createCell(9);
+							cellValue.setCellValue(nPlota30);
+							cellValue = rowData.createCell(10);
+							cellValue.setCellValue(vPlota30);
+							
+							cellValue = rowData.createCell(13);
+							cellValue.setCellValue(nPlota40);
+							cellValue = rowData.createCell(14);
+							cellValue.setCellValue(vPlota40);
+							
+							cellValue = rowData.createCell(17);
+							cellValue.setCellValue(nPlota50);
+							cellValue = rowData.createCell(18);
+							cellValue.setCellValue(vPlota50);
+							
+							cellValue = rowData.createCell(21);
+							cellValue.setCellValue(nPlota60);
+							cellValue = rowData.createCell(22);
+							cellValue.setCellValue(vPlota60);
+							
+							cellValue = rowData.createCell(25);
+							cellValue.setCellValue(nPlota70);
+							cellValue = rowData.createCell(26);
+							cellValue.setCellValue(vPlota70);
+							
+							cellValue = rowData.createCell(29);
+							cellValue.setCellValue(nPlota80);
+							cellValue = rowData.createCell(30);
+							cellValue.setCellValue(vPlota80);						
+							
+							cellValue = rowData.createCell(32);
+							cellValue.setCellValue(vPlotaStats.getStandardDeviation());
+							
+							//prepare new row
+							iRow++;
+							rowData = worksheet.createRow(iRow);
+							cellValue = rowData.createCell(0);
+							cellValue.setCellValue(prov.getTitle());
+						}
 					}
 				}
 			}
-		}
 		System.out.println("Writing to file " + uriOutput.getPath());
 		workbook.write(fileOutputStream);
             }

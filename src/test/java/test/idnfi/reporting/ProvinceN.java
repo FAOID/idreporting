@@ -585,19 +585,19 @@ public class ProvinceN {
 	}
 	
 	public HashMap<String, HashMap<Integer, HashMap<Integer, ArrayList<Double>>>> getHashClusterTract5V() {
-		return hashClusterPlotaV;
+		return hashClusterTract5V;
 	}
 	
 	public HashMap<String, HashMap<Integer, HashMap<Integer, ArrayList<Double>>>> getHashClusterTract5N() {
-		return hashClusterPlotaN;
+		return hashClusterTract5N;
 	}
 
 	// SD per diameter tersedia jika diperlukan
-	public VolumeStatistic getVolume(String clusterKey, Integer year, String string) {
+	public VolumeStatistic getTract5Volume(String clusterKey, Integer year, String diameter) {
 		
 		DescriptiveStatistics stats = DescriptiveStatistics.newInstance();
 		float totalV = 0;
-		for(double v : getHashPlotaV(clusterKey, year, "20"))
+		for(double v : getHashTract5V(clusterKey, year, diameter))
 		{
 			stats.addValue(v);
 			totalV +=v;
@@ -647,7 +647,18 @@ public class ProvinceN {
 		return new VolumeStatistic(totalV, stats.getStandardDeviation()); 
 	}
 	
-	
+public VolumeStatistic getPlotaVolume(String clusterKey, Integer year, String diameter) {
+		
+		DescriptiveStatistics stats = DescriptiveStatistics.newInstance();
+		float totalV = 0;
+		for(double v : getHashPlotaV(clusterKey, year, diameter))
+		{
+			stats.addValue(v);
+			totalV +=v;
+		}
+		return new VolumeStatistic(totalV, stats.getStandardDeviation());
+	}
+
 public VolumeStatistic getPlotaStandarDeviation(String clusterKey, Integer year) {
 		
 		DescriptiveStatistics stats = DescriptiveStatistics.newInstance();
